@@ -14,6 +14,12 @@ body {
 		.body {
 				margin: 0 50px 50px;
 		}
+		.test{
+			width: 50% !important;
+			height:auto !important;
+			align: center !important;
+			display:block !important;
+		 }
 }
 
 @media (min-width: 1440px) and (max-width: 1600px) {
@@ -82,6 +88,14 @@ body {
 				margin-left: -50px !important;
 				margin-right: -50px !important;
 		}
+		.img-max{
+			max-width: 100% !important;
+			min-width: 100% !important;
+			height:auto !important;
+			align: center !important;
+			display:block !important;
+		 }
+		
 }
 
 /*
