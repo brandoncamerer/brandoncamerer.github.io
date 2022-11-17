@@ -4859,7 +4859,6 @@ html.side-header-hamburguer-sidebar-narrow-bar .slider-container {
 .page-header {
 	background-color: #212529;
 	margin: 0 0 35px 0;
-	padding: 30px 0;
 	position: relative;
 	text-align: left;
 }
@@ -4903,7 +4902,7 @@ html.side-header-hamburguer-sidebar-narrow-bar .slider-container {
 }
 
 .page-header.page-header-lg {
-	padding: 50px 0;
+
 }
 
 .page-header.page-header-lg h1 {
@@ -4942,7 +4941,7 @@ html.side-header-hamburguer-sidebar-narrow-bar .slider-container {
 }
 
 .page-header.page-header-modern.page-header-lg {
-	padding: 65px 0;
+	
 }
 
 .page-header.page-header-modern.page-header-lg h1 {
