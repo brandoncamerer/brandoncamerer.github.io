@@ -11,6 +11,7 @@ This is a draft of the new website to be hosted @ cloudfitsoftware.com. It is a 
 - Brandon Camerer - UX Engineer
 - Chris Knoll - Software Engineer
 - Noah Midkiff - Software Engineer
+- Thomas Wolfe - SEO Engineer
 
 ## TO-DO
 - [Needed for GO-LIVE] Finish basic page structure - In-progress BC / Noah / Chris Knoll
