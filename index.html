@@ -1,274 +1,957 @@
-<!doctype html>
-<html class="no-js" lang="en">
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>KidFit Ministries</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="Free Website Template" name="keywords">
+        <meta content="Free Website Template" name="description">
+        <meta name="robots" content="noindex">
 
-<head>
-    <meta charset="utf-8">
+        <!-- Favicon -->
+        <link href="img/favicon.ico" rel="icon">
 
-    <!--====== Title ======-->
-    <title>Brandon Camerer - Senior UX Engineer</title>
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- CSS Libraries -->
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="lib/animate/animate.min.css" rel="stylesheet">
+        <link href="lib/flaticon/font/flaticon.css" rel="stylesheet"> 
+        <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet">
 
-    <!--====== Favicon Icon ======-->
-    <link rel="shortcut icon" href="assets/images/favicon.png" type="image/png">
+        <!-- Template Stylesheet -->
+        <link href="css/style.css" rel="stylesheet">
 
-    <!--====== Slick CSS ======-->
-    <link rel="stylesheet" href="assets/css/animate.css">
+        <style>
+            .hero-carousel {
+                overflow: hidden;
+                margin: 0 auto;
+            }
+    
+            .hero-images {
+                display: flex;
+                transition: transform 0.5s ease-in-out;
+                
+            }
+    
+            .hero-image {
+                min-width: 100%;
+                max-width: 100%;
+                height: auto;
+                padding: 20px;
+                margin: 0 auto;
+            }
+    
+            .carousel-btn {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 24px;
+                cursor: pointer;
+                background: none;
+                border: none;
+                outline: none;
+            }
+    
+            .prev-btn {
+                left: 10px;
+                margin-left: 20px;
+            }
+    
+            .next-btn {
+                right: 10px;
+                margin-right: 20px;
+            }
+        </style>
 
-    <!--====== LineIcons CSS ======-->
-    <link rel="stylesheet" href="assets/css/lineicons.css">
+        
 
-    <!--====== Bootstrap CSS ======-->
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        
+    </head>
 
-    <!--====== Default CSS ======-->
-    <link rel="stylesheet" href="assets/css/default.css">
-
-    <!--====== Style CSS ======-->
-    <link rel="stylesheet" href="assets/css/style.css">
-
-</head>
-
-<body>
-    <!--[if IE]>
-    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
-  <![endif]-->
-  
-    <!--====== PRELOADER PART START ======-->
-
-    <div class="preloader">
-        <div class="loader">
-            <div class="ytp-spinner">
-                <div class="ytp-spinner-container">
-                    <div class="ytp-spinner-rotator">
-                        <div class="ytp-spinner-left">
-                            <div class="ytp-spinner-circle"></div>
-                        </div>
-                        <div class="ytp-spinner-right">
-                            <div class="ytp-spinner-circle"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!--====== PRELOADER PART ENDS ======-->
-
-
-    <!--====== HEADER PART START ======-->
-
-    <section class="header_area">
-        <div class="header_navbar">
-            <div class="container">
+    <body>
+        <!-- Top Bar Start -->
+        <div class="top-bar d-none d-sm-block">
+            <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-12">
-                        <nav class="navbar navbar-expand-lg">
-                            <a class="navbar-brand" href="index.html">
-                                <img src="assets/images/logo.svg" alt="Logo">
-                            </a>
-                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="toggler-icon"></span>
-                                <span class="toggler-icon"></span>
-                                <span class="toggler-icon"></span>
-                            </button>
-
-                            <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
-                                <ul id="nav" class="navbar-nav ml-auto">
-                                    <li class="nav-item active">
-                                        <a class="page-scroll" href="#home">Home<span></span></a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="page-scroll" href="#about">Portfolio<span></span></a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="page-scroll" href="https://www.linkedin.com/in/brandon-camerer/" target="_blank">LinkedIn<span></span></a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="page-scroll" href="assets/images/Brandon_Camerer_Resume.pdf" target="_blank">Resume<span></span></a>
-                                    </li>
-                                </ul>
-                            </div> <!-- navbar collapse -->
-                        </nav> <!-- navbar -->
+                    <div class="col-md-8">
+                        <div class="top-bar-left">
+                            <div class="text">
+                                <i class="far fa-envelope"></i>
+                                <h2><a style="color: white" href="mailto:info@kidfitminstries.org">Info@kidfitministries.org</a></h2>
+                                
+                            </div>
+                            <div class="text">
+                                <i class="fa fa-phone-alt"></i>
+                                <h2><a style="color: white" href="tel:+14343386250">(434) 338-6250</a></h2>
+                              
+                            </div>
+                            <div class="text">
+                                <i class="fa fa-home"></i>
+                                <h2><a style="color: white" href="https://www.google.com/maps/place/1030+McConville+Rd+STE+3,+Lynchburg,+VA+24502/@37.3817549,-79.2195958,17z/data=!3m1!4b1!4m6!3m5!1s0x89b2d0be557a8c01:0x7251cb78af2b7fe5!8m2!3d37.3817549!4d-79.2195958!16s%2Fg%2F11f4ll5q0k?entry=ttu" target="_blank">Lynchburg, VA</a></h2>
+                              
+                            </div>
+                        </div>
                     </div>
-                </div> <!-- row -->
-            </div> <!-- container -->
-        </div> <!-- header navbar -->
-
-        <div id="home" class="header_hero">
-            <div class="container">
-                <div class="row align-items-center justify-content-center justify-content-lg-between">
-                    <div class="col-lg-6">
-                        <div class="header_hero_content mt-45">
-                            <h5 class="header_sub_title wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="0.2s">Senior UX Engineer</h5>
-                            <h2 class="header_title wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="0.5s">Brandon Camerer</h2>
-                            <span class="wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="0.8s">I first picked up a graphic design tool in high school and never looked back. Now over 20 years later, I have worked on designing everything from stickers to complex business solutions for Microsoft. </span>
-                            <p class="wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="1.1s"><img src="assets/images/logos.png" alt="hero"></p>
-                            <a href="https://www.linkedin.com/in/brandon-camerer/" target="_blank" rel="nofollow" class="main-btn wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="1.4s">Contact Me</a>
-                        </div> <!-- header hero content -->
+                    <div class="col-md-4">
+                        <div class="top-bar-right">
+                            <div class="social">
+                                <a href="https://twitter.com/KidFitMinistry" target="_blank"><i class="fab fa-twitter"></i></a>
+                                <a href="https://www.facebook.com/kidfitministries" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.youtube.com/user/carrollm01" target="_blank"><i class="fab fa-youtube"></i></a>
+                                <a href="https://www.instagram.com/kidfitministries/" target="_blank"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-lg-6 col-md-6 col-sm-7">
-                        <div class="header_hero_image mt-50 wow fadeInRightBig" data-wow-duration="1.3s" data-wow-delay="1.8s">
-                            <img src="assets/images/hero.png" alt="hero">
-                        </div> <!-- header hero image -->
-                    </div>
-                </div> <!-- row -->
-            </div> <!-- container -->
-            <div class="header_hero_shape d-none d-lg-block"></div> <!-- header hero shape -->
-        </div> <!-- header hero -->
-    </section>
-
-    <!--====== HEADER PART ENDS ======-->
-
-    <!--====== ABOUT PART START ======-->
-
-    <section id="about" class="about_area pt-70 pb-120">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="section_title text-center pb-30">
-                        <h5 class="sub_title">Work</h5>
-                        <h3 class="main_title">Case Studies</h3>
-                        <ul class="line">
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                        </ul>
-                    </div> <!-- section title -->
-                </div>
-            </div> <!-- row -->
-            <div class="row">
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/microsoft.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="./microsoftazure.html">Microsoft Azure</a></h4>
-                            <p>Redesigning a global service health monitoring web application for Microsoft's Azure Team.</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/seahawks.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="#">Seattle Seahawks</a></h4>
-                            <p>Designing a fan engagement web application for Seahawks fans with NFL players.</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/hh.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="#">HouseHold</a></h4>
-                            <p>Designing a web & mobile application to further collaboration between household members.</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
-                        <b style="float:right;">(Coming soon)</b>
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/microsoft.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="#">Microsoft Partners</a></h4>
-                            <p>Designing a web application to handle incentive payments to Microsoft partners.</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
-                        <b style="float:right;">(Coming soon)</b>
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/microsoft.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="#">Microsoft Dynamics</a></h4>
-                            <p>Designing a Dynamics 365 application to enable the growth of Microsoft service adoption .</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
-                        <b style="float:right;">(Coming soon)</b>
-                        <div class="service_icon">
-                            <a href="#"><img src="assets/images/dodson.svg" alt="Logo"></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="#">Dodson Pest Control</a></h4>
-                            <p>Designing a mobile application to enable efficiency in a pest control business.</p>
-                        </div>
-                    </div> <!-- single service -->
-                </div>
-            </div> <!-- row -->
-        </div> <!-- container -->
-    </section>
-
-    <!--====== ABOUT PART ENDS ======-->
-
-   
-    <!--====== FOOTER PART START ======-->
-
-    <footer id="footer" class="footer_area gray-bg pt-115 pb-120">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="footer_content text-center">
-                        <p class="credit pt-45">Template Designed and Developed by <a href="https://uideck.com/" rel="nofollow">UIdeck</a></p>
-                    </div> <!-- footer content -->
-                </div>
-            </div>  <!-- row -->
-        </div> <!-- container -->
-    </footer>
-
-    <!--====== FOOTER PART ENDS ======-->
-
-    <!--====== PART START ======-->
-
-<!--
-    <section class="">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-">
-                    
                 </div>
             </div>
         </div>
-    </section>
--->
+        <!-- Top Bar End -->
 
-    <!--====== PART ENDS ======-->
+        <!-- Nav Bar Start -->
+        <div class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <div class="container-fluid">
+                <a href="index.html" class="navbar-brand"><div class="about-img">
+                    <img src="img/logo.png" alt="Image">
+                </div></a>
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-    <!-- row -->
+                <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                    <div class="navbar-nav ml-auto">
+                        <a href="index.html" class="nav-item nav-link active">Home</a>
+                        <a href="#about" class="nav-item nav-link">About</a>
+                        <a href="#calendar" class="nav-item nav-link">Calendar</a>
+                        <a href="#testi" class="nav-item nav-link">Testimonials</a>
+                        <a href="#contact" class="nav-item nav-link">Contact</a>
+                        
+                        <!-- <a href="team.html" class="nav-item nav-link">Trainer</a>
+                        <a href="portfolio.html" class="nav-item nav-link">Pose</a>
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Blog</a>
+                            <div class="dropdown-menu">
+                                <a href="blog.html" class="dropdown-item">Blog Grid</a>
+                                <a href="single.html" class="dropdown-item">Blog Detail</a>
+                            </div>
+                        </div>
+                        <a href="contact.html" class="nav-item nav-link">Contact</a> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar End -->
 
 
-    <!--====== Jquery js ======-->
-    <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
-    <script src="assets/js/vendor/modernizr-3.7.1.min.js"></script>
+        <!-- Hero Start -->
+        <div class="hero">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="hero-text">
+                            <h1>Mentorship & Opportunities</h1>
+                            <p>
+                                Our goal is to give every child a chance to enhance their athletic abilities while in a wholesome environment
+                            </p>
+                            <div class="hero-btn">
+                                <a class="btn" href="">Donate</a>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6 d-none d-md-block">
+                        <div class="hero-carousel">
+                            <div class="hero-images">
+                                <div class="hero-image">
+                                    <img src="img/carousel/1.jpg" alt="Hero Image 1">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/2.jpg" alt="Hero Image 2">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/3.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/4.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/5.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/6.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/7.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/8.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/9.jpg" alt="Hero Image 3">
+                                </div>
+                                <div class="hero-image">
+                                    <img src="img/carousel/10.jpg" alt="Hero Image 3">
+                                </div>
+                                <!-- Add more images as needed -->
+                            </div>
+                            <button class="carousel-btn prev-btn" onclick="prevSlide()">❮</button>
+                            <button class="carousel-btn next-btn" onclick="nextSlide()">❯</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Hero End -->
 
-    <!--====== Bootstrap js ======-->
-    <script src="assets/js/popper.min.js"></script>
-    <script src="assets/js/bootstrap.min.js"></script>
+
+        <!-- About Start -->
+        <div id="about" class="about wow fadeInUp" data-wow-delay="0.1s">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-5 col-md-6">
+                        <div class="about-img">
+                            <img src="img/about.png" alt="Image">
+                        </div>
+                    </div>
+                    <div class="col-lg-7 col-md-6">
+                        <div class="section-header text-left">
+                            <p>Learn About Us</p>
+                            <h2>Welcome to KidFit</h2>
+                        </div>
+                        <div class="about-text">
+                            <p>
+                                KidFit, a non-profit organization, is dedicated to transforming lives one child at a time, from cities to states and nations. Our mission is to offer mentorship and inclusive opportunities to children of all backgrounds, fostering their growth both socially and athletically through skilled training and excellent coaching.
+                            </p>
+                            <p>
+                                In collaboration with various organizations, KidFit brings camps and valuable opportunities to Lynchburg, with a current focus on mentoring at the Jubilee Center. Looking ahead, our long-term vision is to establish KidFit programs in every community, ensuring widespread support and enrichment for children everywhere.
+                            </p>
+                          
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- About End -->
 
 
-    <!--====== Appear js ======-->
-    <script src="assets/js/jquery.appear.min.js"></script>
+        <!-- Service Start -->
+        <div id="serve" class="service">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>How We Serve</p>
+                    <h2>Mentorship & Opportunities</h2>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.0s">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <img style="width: 50px; z-index: 9999;" src="img/bball.png" alt="bball">
+                            </div>
+                            <h3>Who We Are</h3>
+                            <p>
+                                KidFit is a non-profit with big goals for changing our world one child at a time, one city at a time, one state at a time, and one nation at a time.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="service-item active">
+                            <div class="service-icon">
+                                <img style="width: 50px; z-index: 9999;" src="img/fb.png" alt="bball">
+                            </div>
+                            <h3>What We Do</h3>
+                            <p>
+                                We provide kids with opportunities to grow both socially and athletically through skilled training and great coaching
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.4s">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <img style="width: 50px; z-index: 9999;" src="img/soc.png" alt="bball">
+                            </div>
+                            <h3>Where We Are</h3>
+                            <p>
+                                KidFit partners with other organizations (Like Jubliee Center) to bring camps and additional opportunities to the city of Lynchburg. 
+                            </p>
+                        </div>
+                    </div>
+                    <!-- <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="flaticon-workout-3"></i>
+                            </div>
+                            <h3>Enjoy Your life</h3>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Phasellus nec pretium mi. Curabitur facilisis ornare velit non
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.8s">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="flaticon-workout-4"></i>
+                            </div>
+                            <h3>Body & Spirituality</h3>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Phasellus nec pretium mi. Curabitur facilisis ornare velit non
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="1s">
+                        <div class="service-item">
+                            <div class="service-icon">
+                                <i class="flaticon-yoga-pose"></i>
+                            </div>
+                            <h3>Body & Mind</h3>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Phasellus nec pretium mi. Curabitur facilisis ornare velit non
+                            </p>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <!-- Service End -->
 
-    <!--====== Scrolling Nav js ======-->
-    <script src="assets/js/jquery.easing.min.js"></script>
-    <script src="assets/js/scrolling-nav.js"></script>
+        <div class="price">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>Our Services</p>
+                    <h2>Services We Provide</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.0s">
+                        
+                    </div>
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.3s">
+                        <div class="price-item featured-item">
+                            <div class="price-header">
+                                
+                                    <small style="color: white;">Our goal is to give every child a chance to enhance their athletic abilities while in a wholesome environment. We offer the following activities:</small>
+                    
+                            </div>
+                            <div class="price-body">
+                                <div class="price-description">
+                                    <ul>
+                                        <li>Speed and Agility</li>
+                                        <li>Travel basketball</li>
+                                        <li>10+ training classes</li>
+                                        <li>Camps</li>
+                                        <li>7v7 football</li>
+                                        <li>Opportunities to serve</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- <div class="price-footer">
+                                <div class="price-action">
+                                    <a class="btn" href="">Join Now</a>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.6s">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <!--====== Main js ======-->
-    <script src="assets/js/main.js"></script>
 
-</body>
+        <!-- Class Start -->
+        <div id="calendar" class="class">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>Our Sessions</p>
+                    <h2>KidFit Sign Up + Calendar</h2>
+                </div>
+                <div class="row">
+                   
 
+<div id="calendly-embed" style="min-width:80%; height:900px; margin: 0 auto;"></div>
+
+<script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js"></script>
+
+<script>
+Calendly.initInlineWidget({
+url: 'https://calendly.com/kidfitministries',
+parentElement: document.getElementById('calendly-embed')
+});
+</script>
+                </div>
+                <!-- <div class="row class-container">
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-1 wow fadeInUp" data-wow-delay="0.0s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-1.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-1.png" alt="Image">
+                                    <h3>Elise Moran</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Pilates Yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-2 wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-2.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-2.png" alt="Image">
+                                    <h3>Kate Glover</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Iyengar Yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-3 wow fadeInUp" data-wow-delay="0.4s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-3.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-3.png" alt="Image">
+                                    <h3>Elina Ekman</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Ashtanga yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-1 wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-4.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-4.png" alt="Image">
+                                    <h3>Lilly Fry</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Hatha Yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-2 wow fadeInUp" data-wow-delay="0.8s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-5.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-5.png" alt="Image">
+                                    <h3>Olivia Yates</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Kundalini Yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 class-item filter-3 wow fadeInUp" data-wow-delay="1s">
+                        <div class="class-wrap">
+                            <div class="class-img">
+                                <img src="img/class-6.jpg" alt="Image">
+                            </div>
+                            <div class="class-text">
+                                <div class="class-teacher">
+                                    <img src="img/teacher-6.png" alt="Image">
+                                    <h3>Millie Harper</h3>
+                                    <a href="">+</a>
+                                </div>
+                                <h2>Vinyasa yoga</h2>
+                                <div class="class-meta">
+                                    <p><i class="far fa-calendar-alt"></i>Sun, Tue, Thu</p>
+                                    <p><i class="far fa-clock"></i>9:00 - 10:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+        <!-- Class End -->
+        
+        
+        <!-- Discount Start -->
+        <!-- <div class="discount wow zoomIn" data-wow-delay="0.1s">
+            <div class="container">
+                <div class="section-header text-center">
+                    <p>Awesome Discount</p>
+                    <h2>Get <span>30%</span> Discount for all Classes</h2>
+                </div>
+                <div class="container discount-text">
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec pretium mi. Curabitur facilisis ornare velit non vulputate. Aliquam metus tortor, auctor id gravida condimentum, viverra quis sem. Curabitur non nisl nec nisi scelerisque maximus. 
+                    </p>
+                    <a class="btn">Join Now</a>
+                </div>
+            </div>
+        </div> -->
+        <!-- Discount End -->
+        
+        
+        <!-- Price Start -->
+        <!-- <div class="price">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>Yoga Package</p>
+                    <h2>Yoga Pricing Plan</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.0s">
+                        <div class="price-item">
+                            <div class="price-header">
+                                <div class="price-title">
+                                    <h2>Basic</h2>
+                                </div>
+                                <div class="price-prices">
+                                    <h2><small>$</small>49<span>/ mo</span></h2>
+                                </div>
+                            </div>
+                            <div class="price-body">
+                                <div class="price-description">
+                                    <ul>
+                                        <li>Personal Trainer</li>
+                                        <li>Special Class</li>
+                                        <li>Free Tutorials</li>
+                                        <li>Group Training</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="price-footer">
+                                <div class="price-action">
+                                    <a class="btn" href="">Join Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.3s">
+                        <div class="price-item featured-item">
+                            <div class="price-header">
+                                <div class="price-status">
+                                    <span>Popular</span>
+                                </div>
+                                <div class="price-title">
+                                    <h2>Standard</h2>
+                                </div>
+                                <div class="price-prices">
+                                    <h2><small>$</small>99<span>/ mo</span></h2>
+                                </div>
+                            </div>
+                            <div class="price-body">
+                                <div class="price-description">
+                                    <ul>
+                                        <li>Personal Trainer</li>
+                                        <li>Special Class</li>
+                                        <li>Free Tutorials</li>
+                                        <li>Group Training</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="price-footer">
+                                <div class="price-action">
+                                    <a class="btn" href="">Join Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="price-item">
+                            <div class="price-header">
+                                <div class="price-title">
+                                    <h2>Premium</h2>
+                                </div>
+                                <div class="price-prices">
+                                    <h2><small>$</small>149<span>/ mo</span></h2>
+                                </div>
+                            </div>
+                            <div class="price-body">
+                                <div class="price-description">
+                                    <ul>
+                                        <li>Personal Trainer</li>
+                                        <li>Special Class</li>
+                                        <li>Free Tutorials</li>
+                                        <li>Group Training</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="price-footer">
+                                <div class="price-action">
+                                    <a class="btn" href="">Join Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        <!-- Price End -->
+        
+        
+        <!-- Testimonial Start -->
+        <div id="testi" class="testimonial wow fadeInUp" data-wow-delay="0.1s">
+            <div class="container">
+                <div class="section-header text-center">
+                    <p>Testimonial</p>
+                    <h2>What KidFit Has Done For Others</h2>
+                </div>
+                <div class="owl-carousel testimonials-carousel">
+                    <div class="testimonial-item">
+                        <div class="testimonial-img">
+                            <img src="img/testimonial-1.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-text">
+                            <p>
+                                I want to help everybody, taking KidFit to the places where kids need mentorship and training, providing a spark of hope and blessings to communities that need it. One day we hope to be able to bless every community.
+                            </p>
+                            <h3>Carroll Moon</h3>
+                            <h4>Founder</h4>
+                        </div>
+                    </div>
+                    <div class="testimonial-item">
+                        <div class="testimonial-img">
+                            <img src="img/testimonial-2.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-text">
+                            <p>
+                                I love having the opportunity to help the kids in our community with their athletics while also showing them the love of Jesus. It’s amazing to see kids learn to persevere through their challenges and learning important messages.
+                            </p>
+                            <h3>Bryce Burnette</h3>
+                            <h4>KidFit Coach</h4>
+                        </div>
+                    </div>
+                    <div class="testimonial-item">
+                        <div class="testimonial-img">
+                            <img src="img/testimonial-3.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-text">
+                            <p>
+                                KidFit is a safe haven where kids in the community can feel comfortable and confident to be able to build on their athletic skills. Our facility is a faith based outlet for kids to be encouraged in constant growth and gains.
+                            </p>
+                            <h3>Shane Collins</h3>
+                            <h4>KidFit Coach & Parent</h4>
+                        </div>
+                    </div>
+                    <!-- <div class="testimonial-item">
+                        <div class="testimonial-img">
+                            <img src="img/testimonial-4.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-text">
+                            <p>
+                                Lorem ipsum dolor sit amet consec adipis elit. Etiam accums lacus eget velit tincid, quis suscip justo dictum.
+                            </p>
+                            <h3>Customer Name</h3>
+                            <h4>Profession</h4>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <!-- Testimonial End -->
+
+
+        <!-- Team Start -->
+        <!-- <div class="team">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>Yoga Trainer</p>
+                    <h2>Expert Yoga Trainer</h2>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.0s">
+                        <div class="team-item">
+                            <div class="team-img">
+                                <img src="img/team-1.jpg" alt="Image">
+                                <div class="team-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                            <div class="team-text">
+                                <h2>Millie Harper</h2>
+                                <p>Yoga Teacher</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="team-item">
+                            <div class="team-img">
+                                <img src="img/team-2.jpg" alt="Image">
+                                <div class="team-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                            <div class="team-text">
+                                <h2>Lilly Fry</h2>
+                                <p>Yoga Teacher</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.4s">
+                        <div class="team-item">
+                            <div class="team-img">
+                                <img src="img/team-3.jpg" alt="Image">
+                                <div class="team-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                            <div class="team-text">
+                                <h2>Elise Moran</h2>
+                                <p>Yoga Teacher</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="team-item">
+                            <div class="team-img">
+                                <img src="img/team-4.jpg" alt="Image">
+                                <div class="team-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                            <div class="team-text">
+                                <h2>Kate Glover</h2>
+                                <p>Yoga Teacher</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        <!-- Team End -->
+
+
+        <!-- Blog Start -->
+        <!-- <div class="blog">
+            <div class="container">
+                <div class="section-header text-center wow zoomIn" data-wow-delay="0.1s">
+                    <p>From Blog</p>
+                    <h2>Latest Yoga Articles</h2>
+                </div>
+                <div class="owl-carousel blog-carousel wow fadeInUp" data-wow-delay="0.1s">
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-1.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-2.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-3.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-4.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-5.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="blog-item">
+                        <div class="blog-img">
+                            <img src="img/blog-6.jpg" alt="Blog">
+                        </div>
+                        <div class="blog-text">
+                            <h2>Lorem ipsum dolor</h2>
+                            <div class="blog-meta">
+                                <p><i class="far fa-list-alt"></i>Body Fitness</p>
+                                <p><i class="far fa-calendar-alt"></i>01-Jan-2045</p>
+                                <p><i class="far fa-comments"></i>5</p>
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet elit. Neca pretim miura bitur facili ornare velit non vulpte liqum metus tortor
+                            </p>
+                            <a class="btn" href="">Read More <i class="fa fa-angle-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+        <!-- Blog End -->
+
+
+        <!-- Footer Start -->
+        <div id="contact" class="footer wow fadeIn" data-wow-delay="0.3s">
+            <div class="container-fluid">
+                <div class="container">
+                    <div class="footer-info">
+                        <img style="width: 200px; margin-bottom: 20px;" src="img/logo.png" alt="Image">
+                        <h3>1030 McConville Road, Unit 3, Lynchburg, VA</h3>
+                        <div class="footer-menu">
+                            <p><a style="color: white" href="tel:+14343386250">(434) 338-6250</a></p>
+                            <p><a style="color: white" href="mailto:info@kidfitminstries.org">Info@kidfitministries.org</a></p>
+                        </div>
+                        <div class="footer-social">
+                            <a href="https://twitter.com/KidFitMinistry" target="_blank"><i class="fab fa-twitter"></i></a>
+                                <a href="https://www.facebook.com/kidfitministries" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.youtube.com/user/carrollm01" target="_blank"><i class="fab fa-youtube"></i></a>
+                                <a href="https://www.instagram.com/kidfitministries/" target="_blank"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">KidFit Ministries</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Designed By <a href="https://cloudfitsoftware.com" target="_blank">CloudFit Software</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="lib/easing/easing.min.js"></script>
+        <script src="lib/wow/wow.min.js"></script>
+        <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="lib/isotope/isotope.pkgd.min.js"></script>
+        <script src="lib/lightbox/js/lightbox.min.js"></script>
+        
+        <!-- Contact Javascript File -->
+        <script src="mail/jqBootstrapValidation.min.js"></script>
+        <script src="mail/contact.js"></script>
+
+        <!-- Template Javascript -->
+        <script src="js/main.js"></script>
+
+        <script>
+            let currentIndex = 0;
+            const slides = document.querySelectorAll('.hero-image');
+            const totalSlides = slides.length;
+        
+            function showSlide(index) {
+                const newTransformValue = -index * 100 + '%';
+                document.querySelector('.hero-images').style.transform = 'translateX(' + newTransformValue + ')';
+            }
+        
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                showSlide(currentIndex);
+            }
+        
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                showSlide(currentIndex);
+            }
+        
+            // Automatically scroll every 5 seconds
+            setInterval(nextSlide, 5000);
+        </script>
+    </body>
 </html>
