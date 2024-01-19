@@ -4,7 +4,6 @@
     // Initiate the wowjs
     new WOW().init();
     
-    
     // Back to top button
     $(window).scroll(function () {
         if ($(this).scrollTop() > 200) {
@@ -18,7 +17,6 @@
         return false;
     });
     
-    
     // Sticky Navbar
     $(window).scroll(function () {
         if ($(this).scrollTop() > 0) {
@@ -27,7 +25,6 @@
             $('.navbar').removeClass('nav-sticky');
         }
     });
-    
     
     // Dropdown on mouse hover
     $(document).ready(function () {
@@ -46,11 +43,10 @@
         $(window).resize(toggleNavbarMethod);
     });
 
-
     // Testimonials carousel
     $(".testimonials-carousel").owlCarousel({
         center: true,
-        autoplay: true,
+        autoplay: false,
         dots: true,
         loop: true,
         responsive: {
@@ -68,7 +64,6 @@
             }
         }
     });
-    
     
     // Blogs carousel
     $(".blog-carousel").owlCarousel({
@@ -96,31 +91,20 @@
         }
     });
     
-    
     // Class filter
     var classIsotope = $('.class-container').isotope({
         itemSelector: '.class-item',
         layoutMode: 'fitRows'
     });
 
+    // Simulate a click on the "One-Time Donation" filter by default
+    var defaultFilterItem = $('#class-filter li[data-filter=".filter-1"]');
+    defaultFilterItem.addClass('filter-active'); // Add the 'filter-active' class
+    classIsotope.isotope({filter: defaultFilterItem.data('filter')}); // Trigger the filter
+
     $('#class-filter li').on('click', function () {
         $("#class-filter li").removeClass('filter-active');
         $(this).addClass('filter-active');
         classIsotope.isotope({filter: $(this).data('filter')});
     });
-    
-    
-    // Portfolio filter
-    var portfolioIsotope = $('.portfolio-container').isotope({
-        itemSelector: '.portfolio-item',
-        layoutMode: 'fitRows'
-    });
-
-    $('#portfolio-filter li').on('click', function () {
-        $("#portfolio-filter li").removeClass('filter-active');
-        $(this).addClass('filter-active');
-        portfolioIsotope.isotope({filter: $(this).data('filter')});
-    });
-    
 })(jQuery);
-
