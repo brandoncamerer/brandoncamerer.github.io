@@ -7511,8 +7511,7 @@ h1, h2, h3, h4, h5,
   background: -ms-linear-gradient(45deg, #6b75ff 0%, #6b75ff 0%, #59b7ff 100%);
   background: linear-gradient(45deg, #6b75ff 0%, #6b75ff 0%, #59b7ff 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6b75ff', endColorstr='#59b7ff', GradientType=1 );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent; }
+  -webkit-background-clip: text; }
   @media (max-width: 991.98px) {
     .slider-text h1 {
       font-size: 40px; } }
