@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nerf Gun - Firestrike Elite
+* source:	https://sketchfab.com/3d-models/nerf-gun-firestrike-elite-c675381c9b1749afbfc6a70ef227fdd1
+* author:	goodchildn (https://sketchfab.com/goodchildn)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nerf Gun - Firestrike Elite" (https://sketchfab.com/3d-models/nerf-gun-firestrike-elite-c675381c9b1749afbfc6a70ef227fdd1) by goodchildn (https://sketchfab.com/goodchildn) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
