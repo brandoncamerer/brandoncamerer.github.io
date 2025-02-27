@@ -96,7 +96,7 @@
   ],
   "images": [
     {
-      "uri": "textures/material_0_baseColor.png"
+      "uri": "https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/textures/material_0_baseColor.png"
     }
   ],
   "materials": [
