@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="TaskPaneApp">
+    <Id>your-unique-guid</Id>
+    <Version>1.0</Version>
+    <ProviderName>Brandon Camerer</ProviderName>
+    <DefaultLocale>en-US</DefaultLocale>
+    <DisplayName>CloudFit Safe</DisplayName>
+    <Description>Disables links in emails for security</Description>
+    <IconUrl DefaultValue="https://brandoncamerer.github.io/outlook/icon.png"/>
+    <SupportUrl DefaultValue="https://brandoncamerer.github.io/"/>
+    
+    <Hosts>
+        <Host Name="Mailbox"/>
+    </Hosts>
+
+    <DefaultSettings>
+        <SourceLocation DefaultValue="https://brandoncamerer.github.io/outlook/taskpane.html"/>
+    </DefaultSettings>
+
+    <Permissions>ReadWriteItem</Permissions>
+
+    <VersionOverrides xsi:type="VersionOverridesV1_0">
+        <Hosts>
+            <Host xsi:type="MailHost">
+                <DesktopFormFactor>
+                    <ExtensionPoint xsi:type="MessageReadCommandSurface">
+                        <CustomTab id="CloudFitSafeTab">
+                            <Group id="CloudFitSafeGroup">
+                                <Label>CloudFit Safe</Label>
+                                <Control xsi:type="Button" id="DisableLinksButton">
+                                    <Label>Disable Links</Label>
+                                    <Supertip>
+                                        <Title>Disable Links</Title>
+                                        <Description>Disables all links in the email body.</Description>
+                                    </Supertip>
+                                    <Action xsi:type="ShowTaskpane">
+                                        <SourceLocation DefaultValue="https://brandoncamerer.github.io/outlook/taskpane.html"/>
+                                    </Action>
+                                </Control>
+                            </Group>
+                        </CustomTab>
+                    </ExtensionPoint>
+                </DesktopFormFactor>
+            </Host>
+        </Hosts>
+    </VersionOverrides>
+</OfficeApp>
