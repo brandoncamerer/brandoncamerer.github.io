@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Paintball Game – FPS Mode with Gun and Endless Ground</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      cursor: auto;
+    }
+    /* Instructions overlay */
+    #instructions {
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      user-select: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+    /* Restart button styling */
+    #restartButton {
+      position: absolute;
+      top: 55%;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 28px;
+      user-select: none;
+      cursor: pointer;
+      z-index: 40;
+      display: none;
+    }
+    /* HUD styling */
+    .hud {
+      position: fixed;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      color: #00ffcc;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 12px;
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      text-shadow: 0 0 10px #00ffcc;
+      z-index: 10;
+    }
+    /* Score now in bottom right */
+    #hud-score { bottom: 10px; right: 10px; }
+    /* Health bar container in bottom left */
+    #hud-health-container {
+      bottom: 10px;
+      left: 10px;
+      width: 200px;
+      height: 20px;
+      background: #555;
+      border: 2px solid #00ffcc;
+      border-radius: 5px;
+      z-index: 10;
+      padding: 0;
+    }
+    /* Health bar itself */
+    #hud-health-bar {
+      width: 100%;
+      height: 100%;
+      background: #00ffcc;
+    }
+    /* Ammo counter HUD styling */
+    #hud-ammo {
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    /* Aimer (crosshair) styling.
+       The container is 40x40 and the lines are positioned absolutely.
+       We’ll update the top/left positions via JavaScript to create a dynamic effect. */
+    #aimer {
+      position: fixed;
+      top: 50%;
+      left: 52%;  /* shifted slightly to the right */
+      width: 40px;
+      height: 40px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    #aimer .line {
+      position: absolute;
+      background: #00ffcc;
+    }
+    /* Top and bottom lines: horizontal centering */
+    #aimer .line.top {
+      width: 2px;
+      height: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #aimer .line.bottom {
+      width: 2px;
+      height: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    /* Left and right lines: vertical centering */
+    #aimer .line.left {
+      width: 10px;
+      height: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #aimer .line.right {
+      width: 10px;
+      height: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    /* Center dot remains unchanged */
+    #aimer .center-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      background: #00ffcc;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    /* Flash overlay */
+    #flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: red;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out;
+      z-index: 20;
+    }
+    /* Power-up message */
+    #powerupMessage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -150%);
+      font-size: 24px;
+      color: #ff00ff;
+      text-shadow: 0 0 20px #ff00ff;
+      z-index: 100;
+      display: none;
+      font-family: 'Orbitron', sans-serif;
+    }
+    /* Game Over overlay */
+    #gameover {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 48px;
+      color: red;
+      text-shadow: 0 0 10px #ffffff;
+      display: none;
+      z-index: 30;
+      text-align: center;
+      line-height: 1.2;
+    }
+    /* Futuristic Radar styling */
+    #radar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 150px;
+      height: 150px;
+      background: transparent;
+      border-radius: 50%;
+      z-index: 15;
+      box-shadow: 0 0 15px #00ffff;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
+</head>
+<body>
+  <div id="instructions">Click to Play</div>
+  <div id="restartButton">Restart</div>
+  <div id="hud-score" class="hud">Score: 0</div>
+  <div id="hud-health-container" class="hud">
+    <div id="hud-health-bar"></div>
+  </div>
+  <div id="hud-ammo" class="hud">Ammo: 15</div>
+  <!-- Updated Aimer HTML with dynamic crosshair lines -->
+  <div id="aimer">
+    <div class="line top"></div>
+    <div class="line bottom"></div>
+    <div class="line left"></div>
+    <div class="line right"></div>
+    <div class="center-dot"></div>
+  </div>
+  <div id="flash"></div>
+  <div id="powerupMessage">Purple Shotgun Mode!</div>
+  <div id="gameover">Game Over<br><span style="font-size:32px; color:#fff;">Final Score: 0</span></div>
+  <!-- Futuristic Radar canvas -->
+  <canvas id="radar" width="150" height="150"></canvas>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <script>
+    // PointerLockControls – unchanged.
+    THREE.PointerLockControls = function (camera, domElement) {
+      var scope = this;
+      this.domElement = domElement || document.body;
+      this.isLocked = false;
+      this.minPolarAngle = 0;
+      this.maxPolarAngle = Math.PI;
+      var pointerSpeed = 1.0;
+      var euler = new THREE.Euler(0, 0, 0, 'YXZ');
+      var PI_2 = Math.PI / 2;
+      function onMouseMove(event) {
+        if (!scope.isLocked) return;
+        var movementX = event.movementX || 0;
+        var movementY = event.movementY || 0;
+        euler.setFromQuaternion(camera.quaternion);
+        euler.y -= movementX * 0.002 * pointerSpeed;
+        euler.x -= movementY * 0.002 * pointerSpeed;
+        euler.x = Math.max(PI_2 - scope.maxPolarAngle, Math.min(PI_2 - scope.minPolarAngle, euler.x));
+        camera.quaternion.setFromEuler(euler);
+      }
+      function onPointerlockChange() {
+        if (document.pointerLockElement === scope.domElement) {
+          scope.dispatchEvent({ type: 'lock' });
+          scope.isLocked = true;
+        } else {
+          scope.dispatchEvent({ type: 'unlock' });
+          scope.isLocked = false;
+        }
+      }
+      function onPointerlockError() {
+        console.error('THREE.PointerLockControls: Unable to use Pointer Lock API');
+      }
+      this.connect = function () {
+        document.addEventListener('mousemove', onMouseMove, false);
+        document.addEventListener('pointerlockchange', onPointerlockChange, false);
+        document.addEventListener('pointerlockerror', onPointerlockError, false);
+      };
+      this.disconnect = function () {
+        document.removeEventListener('mousemove', onMouseMove, false);
+        document.removeEventListener('pointerlockchange', onPointerlockChange, false);
+        document.removeEventListener('pointerlockerror', onPointerlockError, false);
+      };
+      this.dispose = function () { this.disconnect(); };
+      this.getObject = function () { return camera; };
+      this.getDirection = function () {
+        var direction = new THREE.Vector3(0, 0, -1);
+        return function (v) { return v.copy(direction).applyQuaternion(camera.quaternion); };
+      }();
+      this.moveForward = function (distance) {
+        var vector = new THREE.Vector3();
+        vector.setFromMatrixColumn(camera.matrix, 0);
+        vector.crossVectors(camera.up, vector);
+        camera.position.addScaledVector(vector, distance);
+      };
+      this.moveRight = function (distance) {
+        var vector = new THREE.Vector3();
+        vector.setFromMatrixColumn(camera.matrix, 0);
+        camera.position.addScaledVector(vector, distance);
+      };
+      this.lock = function () { this.domElement.requestPointerLock(); };
+      this.unlock = function () { document.exitPointerLock(); };
+      this.connect();
+    };
+    THREE.PointerLockControls.prototype = Object.create(THREE.EventDispatcher.prototype);
+    THREE.PointerLockControls.prototype.constructor = THREE.PointerLockControls;
+
+    // Global variables and game state.
+    let camera, scene, renderer, controls;
+    let paintballs = [], robots = [], powerUps = [], explosions = [];
+    let hitIndicators = []; // No longer used for damage text.
+    const clock = new THREE.Clock();
+    const BALL_RADIUS = 0.65;
+    let score = 0, hp = 100;
+    let ammo = 15;
+    let gameOver = false, lastCollisionTime = 0;
+    let powerUpActive = false, powerUpTimer = 0;
+    let greenLaserActive = false, greenLaserTimer = 0;
+    let gameStarted = false, spawnIntervalId;
+    let playerVelocityY = 0;
+    let sprintActive = false;
+    const GROUND_Y = 5;
+    const JUMP_VELOCITY = 28, PLAYER_GRAVITY = 80;
+    const GUN_MUZZLE_OFFSET = new THREE.Vector3(2, -0.9, -6);
+    const FLOOR_Y = -10;
+    let currentGun = null;
+    let radarSweepAngle = 0;
+
+    // Dynamic crosshair variables.
+    let crosshairSpread = 8;
+    const defaultCrosshairSpread = 8;
+    const maxCrosshairSpread = 20;
+
+    function updateHUD() {
+      document.getElementById("hud-score").innerText = "Score: " + score;
+      document.getElementById("hud-health-bar").style.width = hp + "%";
+      let ammoText = "Ammo: " + ammo;
+      if (ammo === 0) {
+        ammoText += " - Press R to reload";
+      }
+      document.getElementById("hud-ammo").innerText = ammoText;
+    }
+    updateHUD();
+
+    let moveForwardFlag = false, moveBackwardFlag = false, moveLeftFlag = false, moveRightFlag = false;
+    const BOUNDS = { minX: -100, maxX: 100, minZ: -100, maxZ: 100 };
+
+    init();
+    animate();
+
+    function loadGun() {
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        'https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/nerf/scene.gltf',
+        function (gltf) {
+          if (currentGun) {
+            camera.remove(currentGun);
+          }
+          currentGun = new THREE.Group();
+          currentGun.add(gltf.scene);
+          currentGun.scale.set(0.0018, 0.0018, 0.0018);
+          currentGun.rotation.order = "YXZ";
+          currentGun.rotation.set(0, Math.PI / 2, 0);
+          currentGun.position.set(0.8, -0.9, -1.07);
+          camera.add(currentGun);
+        },
+        undefined,
+        function (error) {
+          console.error("Error loading gun model:", error);
+        }
+      );
+    }
+
+    function createExplosion(position, color) {
+      const particleCount = 100;
+      const positions = new Float32Array(particleCount * 3);
+      const velocities = [];
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = position.x;
+        positions[i * 3 + 1] = position.y;
+        positions[i * 3 + 2] = position.z;
+        let dir = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
+        let speed = Math.random() * 20;
+        velocities.push(dir.multiplyScalar(speed));
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({ color: color, size: 1, transparent: true, opacity: 1, depthWrite: false });
+      const points = new THREE.Points(geometry, material);
+      const explosion = { points: points, velocities: velocities, lifetime: 0 };
+      explosions.push(explosion);
+      scene.add(points);
+    }
+
+    function updateExplosions(delta) {
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const exp = explosions[i];
+        exp.lifetime += delta;
+        let posAttr = exp.points.geometry.attributes.position.array;
+        for (let j = 0; j < exp.velocities.length; j++) {
+          posAttr[j * 3] += exp.velocities[j].x * delta;
+          posAttr[j * 3 + 1] += exp.velocities[j].y * delta;
+          posAttr[j * 3 + 2] += exp.velocities[j].z * delta;
+        }
+        exp.points.geometry.attributes.position.needsUpdate = true;
+        exp.points.material.opacity = Math.max(0, 1 - exp.lifetime / 1.0);
+        if(exp.lifetime > 1.0){
+          scene.remove(exp.points);
+          explosions.splice(i,1);
+        }
+      }
+    }
+
+    function createSplatMark(position, color, surfaceNormal, addToScene = true) {
+      const splatGeom = new THREE.CircleGeometry(1, 32);
+      const splatMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+      const splat = new THREE.Mesh(splatGeom, splatMat);
+      splat.position.copy(position);
+      if(surfaceNormal){
+        let q = new THREE.Quaternion();
+        q.setFromUnitVectors(new THREE.Vector3(0,0,1), surfaceNormal);
+        let angle = Math.random()*2*Math.PI;
+        let q2 = new THREE.Quaternion();
+        q2.setFromAxisAngle(surfaceNormal, angle);
+        q.multiply(q2);
+        splat.quaternion.copy(q);
+      } else {
+        splat.rotation.x = -Math.PI/2;
+      }
+      const scale = 1.0 + Math.random()*0.5;
+      splat.scale.set(scale, scale, scale);
+      if(addToScene) scene.add(splat);
+      return splat;
+    }
+
+    function loadRobot(x, z) {
+      const loader = new THREE.GLTFLoader();
+      const textureLoader = new THREE.TextureLoader();
+      loader.load(
+        'https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/scene.gltf',
+        function(gltf){
+          let robot = gltf.scene;
+          const texture = textureLoader.load("https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/textures/material_0_baseColor.png");
+          texture.flipY = false;
+          texture.encoding = THREE.sRGBEncoding;
+          robot.traverse((node) => {
+            if(node.isMesh){
+              node.material.map = texture;
+              node.material.needsUpdate = true;
+              node.material.color.set(0xffffff);
+              node.material.side = THREE.DoubleSide;
+              node.material.metalness = 0;
+              node.material.roughness = 1;
+            }
+          });
+          robot.scale.set(20,20,20);
+          robot.updateMatrixWorld(true);
+          const bbox = new THREE.Box3().setFromObject(robot);
+          const offsetY = -bbox.min.y;
+          robot.position.set(x, FLOOR_Y + offsetY, z);
+          let angle = Math.random()*Math.PI*2;
+          let speedMultiplier = 35;
+          robot.userData.velocity = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)).multiplyScalar(speedMultiplier);
+          robot.userData.health = 100;
+          robots.push(robot);
+          scene.add(robot);
+        },
+        undefined,
+        function(error){
+          console.error('Error loading robot model:', error);
+        }
+      );
+    }
+
+    function spawnRobot() {
+      if(!gameStarted) return;
+      let forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0;
+      forward.normalize();
+      let offsetAngle = (Math.random() - 0.5) * (Math.PI / 2);
+      let spawnDirection = forward.clone().applyAxisAngle(new THREE.Vector3(0,1,0), offsetAngle);
+      let spawnDistance = Math.random() * 150 + 150;
+      let spawnPos = camera.position.clone().add(spawnDirection.multiplyScalar(spawnDistance));
+      loadRobot(spawnPos.x, spawnPos.z);
+    }
+
+    function createPowerUpOrb(position, type='purple'){
+      if(type === 'purple'){
+        position.y = 6;
+      } else {
+        position.y = 8;
+      }
+      const group = new THREE.Group();
+      let coreRadius = 1.0, haloRadius = 1.3;
+      let coreColor, coreEmissive, haloColor;
+      if(type==='purple'){
+        coreColor = 0xff00ff;
+        coreEmissive = 0x9900ff;
+        haloColor = 0xff00ff;
+      } else if(type==='green'){
+        coreColor = 0x00ff00;
+        coreEmissive = 0x00ff00;
+        haloColor = 0x00ff00;
+      }
+      const orbGeometry = new THREE.SphereGeometry(coreRadius,32,32);
+      const orbMaterial = new THREE.MeshPhongMaterial({ color: coreColor, emissive: coreEmissive, emissiveIntensity: 1 });
+      const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+      group.add(orb);
+      const haloGeometry = new THREE.SphereGeometry(haloRadius,32,32);
+      const haloMaterial = new THREE.MeshBasicMaterial({ color: haloColor, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+      const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+      group.add(halo);
+      group.position.copy(position);
+      group.userData.type = type;
+      powerUps.push(group);
+      scene.add(group);
+    }
+
+    function shootPurpleBurst(position) {
+      const burstCount = 5;
+      const spread = 0.3;
+      const baseDirection = new THREE.Vector3();
+      camera.getWorldDirection(baseDirection);
+      for (let i = 0; i < burstCount; i++){
+        const geometry = new THREE.SphereGeometry(BALL_RADIUS, 16, 16);
+        const material = new THREE.MeshPhongMaterial({ color: 0xff00ff, shininess: 100 });
+        const paintball = new THREE.Mesh(geometry, material);
+        paintball.position.copy(position);
+        const perturbedDirection = baseDirection.clone();
+        perturbedDirection.x += (Math.random() - 0.5) * spread;
+        perturbedDirection.y += (Math.random() - 0.5) * spread;
+        perturbedDirection.z += (Math.random() - 0.5) * spread;
+        perturbedDirection.normalize();
+        paintball.userData.velocity = perturbedDirection.multiplyScalar(150);
+        paintballs.push(paintball);
+        scene.add(paintball);
+      }
+    }
+
+    function flashRed(){
+      const flashDiv = document.getElementById("flash");
+      flashDiv.style.background = "red";
+      flashDiv.style.opacity = 0.5;
+      setTimeout(() => { flashDiv.style.opacity = 0; }, 300);
+    }
+
+    function flashPurple(){
+      const flashDiv = document.getElementById("flash");
+      flashDiv.style.background = "purple";
+      flashDiv.style.opacity = 0.5;
+      setTimeout(() => { flashDiv.style.opacity = 0; }, 300);
+    }
+
+    function showPowerupMessage(){
+      const messageEl = document.getElementById("powerupMessage");
+      messageEl.innerText = "Purple Shotgun Mode!";
+      messageEl.style.display = "block";
+      setTimeout(() => { messageEl.style.display = "none"; }, 1000);
+    }
+
+    function showGreenLaserMessage(){
+      const messageEl = document.getElementById("powerupMessage");
+      messageEl.innerText = "Green laser enabled for 10 seconds";
+      messageEl.style.display = "block";
+      setTimeout(() => { 
+        messageEl.style.display = "none"; 
+        messageEl.innerText = "Purple Shotgun Mode!";
+      }, 1000);
+    }
+
+    // The createHitIndicator function has been removed as per your request.
+
+    function checkPlayerCollision(){
+      const currentTime = performance.now()/1000;
+      if(currentTime - lastCollisionTime < 1) return;
+      for(let i = 0; i < robots.length; i++){
+        let robot = robots[i];
+        let box = new THREE.Box3().setFromObject(robot);
+        if(box.containsPoint(camera.position)){
+          hp -= 25;
+          lastCollisionTime = currentTime;
+          flashRed();
+          updateHUD();
+          scene.remove(robot);
+          robots.splice(i, 1);
+          if(hp <= 0){
+            gameOver = true;
+            document.getElementById("gameover").innerHTML = "Game Over<br><span style='font-size:32px; color:#fff;'>Final Score: " + score + "</span>";
+            document.getElementById("gameover").style.display = "block";
+            document.getElementById("restartButton").style.display = "block";
+            controls.unlock();
+            document.body.style.cursor = "auto";
+          }
+          break;
+        }
+      }
+    }
+
+    function restartGame(){
+      localStorage.setItem("autoStart", "true");
+      location.reload();
+    }
+
+    // Updated radar function (unchanged from previous version).
+    function updateRadar() {
+      const radarCanvas = document.getElementById("radar");
+      const ctx = radarCanvas.getContext("2d");
+      const width = radarCanvas.width;
+      const height = radarCanvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const now = performance.now() / 1000;
+      ctx.clearRect(0, 0, width, height);
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, centerX - 2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(0,255,204,0.2)";
+      ctx.lineWidth = 1;
+      for (let i = 0.25; i < 1; i += 0.25) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, centerX * i, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.stroke();
+      let dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      let yaw = Math.atan2(dir.x, -dir.z);
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.shadowColor = "rgba(255, 255, 0, 0.7)";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, -6);
+      ctx.lineTo(2.5, 3);
+      ctx.lineTo(-2.5, 3);
+      ctx.closePath();
+      let gradient = ctx.createLinearGradient(0, -6, 0, 3);
+      gradient.addColorStop(0, "rgba(255,255,0,1)");
+      gradient.addColorStop(1, "rgba(255,255,0,0.5)");
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+      const pingPeriod = 2;
+      const pingDuration = 1;
+      const fadeDuration = 1;
+      let pingCycle = now % pingPeriod;
+      if (pingCycle < pingDuration) {
+        const radarRange = 300;
+        robots.forEach(robot => {
+          const dx = robot.position.x - camera.position.x;
+          const dz = robot.position.z - camera.position.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist <= radarRange) {
+            robot.userData.lastPing = now;
+          }
+        });
+        const pulseRadius = (pingCycle / pingDuration) * centerX;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0,255,255," + (1 - pingCycle / pingDuration) + ")";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      const radarRange = 300;
+      const scale = centerX / radarRange;
+      robots.forEach(robot => {
+        if (robot.userData.lastPing) {
+          const dt = now - robot.userData.lastPing;
+          if (dt < fadeDuration) {
+            const alpha = 1 - dt / fadeDuration;
+            let dx = robot.position.x - camera.position.x;
+            let dz = robot.position.z - camera.position.z;
+            const rotatedX = dx * Math.cos(yaw) + dz * Math.sin(yaw);
+            const rotatedY = -dx * Math.sin(yaw) + dz * Math.cos(yaw);
+            const radarX = centerX + rotatedX * scale;
+            const radarY = centerY + rotatedY * scale;
+            ctx.fillStyle = "rgba(255,0,0," + alpha + ")";
+            ctx.beginPath();
+            ctx.arc(radarX, radarY, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      });
+    }
+
+    // Dynamic crosshair update function.
+    function updateCrosshair() {
+      // Assuming #aimer is 40x40, so the center is at 20px.
+      let center = 20;
+      let topLine = document.querySelector('#aimer .line.top');
+      let bottomLine = document.querySelector('#aimer .line.bottom');
+      let leftLine = document.querySelector('#aimer .line.left');
+      let rightLine = document.querySelector('#aimer .line.right');
+      // Top line: position its top so that its bottom edge sits at center - spread.
+      topLine.style.top = (center - crosshairSpread - 10) + "px";
+      // Bottom line: position its top edge at center + spread.
+      bottomLine.style.top = (center + crosshairSpread) + "px";
+      // Left line: position its left so that its right edge sits at center - spread.
+      leftLine.style.left = (center - crosshairSpread - 10) + "px";
+      // Right line: position its left edge at center + spread.
+      rightLine.style.left = (center + crosshairSpread) + "px";
+    }
+
+    function init(){
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x000000);
+      scene.fog = new THREE.Fog(0x000000, 10, 150);
+      const textureLoader = new THREE.TextureLoader();
+      const groundTexture = textureLoader.load("https://threejs.org/examples/textures/terrain/grasslight-big.jpg");
+      groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+      groundTexture.repeat.set(50,50);
+      groundTexture.encoding = THREE.sRGBEncoding;
+      const floorMaterial = new THREE.MeshPhongMaterial({ map: groundTexture });
+      const floorGeometry = new THREE.PlaneGeometry(10000, 10000, 10, 10);
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.rotation.x = -Math.PI/2;
+      floor.position.y = FLOOR_Y;
+      scene.add(floor);
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1000);
+      camera.position.y = GROUND_Y;
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+      const hemiLight = new THREE.HemisphereLight(0xaaaaaa, 0x444444, 1.5);
+      scene.add(hemiLight);
+      score = 0; 
+      hp = 100; 
+      gameOver = false; 
+      lastCollisionTime = 0;
+      updateHUD();
+      for(let i = 0; i < 10; i++){
+        spawnRobot();
+      }
+      spawnIntervalId = setInterval(() => { if(gameStarted) spawnRobot(); }, 1000);
+      controls = new THREE.PointerLockControls(camera, document.body);
+      const instructions = document.getElementById("instructions");
+      instructions.addEventListener("click", () => { 
+        controls.lock();
+        gameStarted = true;
+        instructions.style.display = "none";
+      });
+      scene.add(controls.getObject());
+      document.addEventListener("keydown", onKeyDown, false);
+      document.addEventListener("keyup", onKeyUp, false);
+      window.addEventListener("click", shootPaintball, false);
+      window.addEventListener("resize", onWindowResize, false);
+      const restartButton = document.getElementById("restartButton");
+      restartButton.addEventListener("click", restartGame);
+      if(localStorage.getItem("autoStart") === "true"){
+        gameStarted = true;
+        instructions.style.display = "none";
+        controls.lock();
+        localStorage.removeItem("autoStart");
+      }
+      loadGun();
+    }
+
+    function onWindowResize(){
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function onKeyDown(event){
+      switch(event.code){
+        case "KeyW": moveForwardFlag = true; break;
+        case "KeyA": moveLeftFlag = true; break;
+        case "KeyS": moveBackwardFlag = true; break;
+        case "KeyD": moveRightFlag = true; break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          sprintActive = true; break;
+        case "Space":
+          if(Math.abs(camera.position.y - GROUND_Y) < 0.1){
+            playerVelocityY = JUMP_VELOCITY;
+          }
+          break;
+        case "KeyR":
+          if(ammo < 15) {
+            ammo = 15;
+            updateHUD();
+          }
+          break;
+      }
+    }
+
+    function onKeyUp(event){
+      switch(event.code){
+        case "KeyW": moveForwardFlag = false; break;
+        case "KeyA": moveLeftFlag = false; break;
+        case "KeyS": moveBackwardFlag = false; break;
+        case "KeyD": moveRightFlag = false; break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          sprintActive = false; break;
+      }
+    }
+
+    // Modified shootPaintball function: add random perturbation based on crosshair spread
+    // and expand the aimer (increase crosshairSpread) when shooting repeatedly.
+    function shootPaintball(){
+      if(!controls.isLocked || gameOver) return;
+      if (ammo <= 0) {
+          document.getElementById("hud-ammo").innerText = "Ammo: 0 - Press R to reload";
+          return;
+      }
+      ammo--;
+      updateHUD();
+      // Increase crosshair spread (aimer recoil) when shooting fast.
+      crosshairSpread = Math.min(maxCrosshairSpread, crosshairSpread + 3);
+      let startPos = GUN_MUZZLE_OFFSET.clone();
+      camera.localToWorld(startPos);
+      const direction = new THREE.Vector3();
+      camera.getWorldDirection(direction);
+      if(greenLaserActive){
+        const laserLength = 100, offset = 2;
+        const geometry = new THREE.CylinderGeometry(0.2,0.2,laserLength,8);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00 });
+        const laser = new THREE.Mesh(geometry, material);
+        laser.position.copy(startPos.clone().add(direction.clone().multiplyScalar(laserLength/2+offset)));
+        laser.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction);
+        scene.add(laser);
+        const ray = new THREE.Ray(startPos, direction);
+        const intersectionPoint = new THREE.Vector3();
+        for(let i = robots.length-1; i>=0; i--){
+          let robot = robots[i];
+          let box = new THREE.Box3().setFromObject(robot);
+          if(ray.intersectBox(box, intersectionPoint)){
+            createExplosion(intersectionPoint, 0x00ff00);
+            scene.remove(robot);
+            robots.splice(i,1);
+            score++;
+            updateHUD();
+          }
+        }
+        setTimeout(() => { scene.remove(laser); }, 200);
+        return;
+      }
+      if(powerUpActive){
+        shootPurpleBurst(startPos);
+        return;
+      }
+      // Apply additional spread to the shot based on crosshairSpread.
+      let spreadFactor = (crosshairSpread - defaultCrosshairSpread) * 0.02;
+      if (spreadFactor < 0) spreadFactor = 0;
+      direction.x += (Math.random() - 0.5) * spreadFactor;
+      direction.y += (Math.random() - 0.5) * spreadFactor;
+      direction.z += (Math.random() - 0.5) * spreadFactor;
+      direction.normalize();
+      const geometry = new THREE.SphereGeometry(BALL_RADIUS,16,16);
+      const material = new THREE.MeshPhongMaterial({ color: 0xffff00, shininess: 100 });
+      const paintball = new THREE.Mesh(geometry, material);
+      paintball.position.copy(startPos);
+      paintball.userData.velocity = direction.clone().multiplyScalar(150);
+      paintballs.push(paintball);
+      scene.add(paintball);
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const gravity = new THREE.Vector3(0, -20, 0);
+      camera.position.y += playerVelocityY * delta;
+      playerVelocityY -= PLAYER_GRAVITY * delta;
+      if(camera.position.y < GROUND_Y){
+        camera.position.y = GROUND_Y;
+        playerVelocityY = 0;
+      }
+      if(powerUpActive){
+        powerUpTimer -= delta;
+        if(powerUpTimer <= 0) {
+          powerUpActive = false;
+          loadGun();
+        }
+      }
+      if(greenLaserActive){
+        greenLaserTimer -= delta;
+        if(greenLaserTimer <= 0) greenLaserActive = false;
+      }
+      for(let i = 0; i < powerUps.length; i++){
+        powerUps[i].position.y = (powerUps[i].userData.type==='purple' ? 6 : 8);
+      }
+      for(let i = powerUps.length - 1; i >= 0; i--){
+        const orb = powerUps[i];
+        if(camera.position.distanceTo(orb.position) < 8){
+          if(orb.userData.type === 'purple'){
+            flashPurple();
+            showPowerupMessage();
+            powerUpActive = true;
+            powerUpTimer = 10;
+          } else if(orb.userData.type === 'green'){
+            flashPurple();
+            showGreenLaserMessage();
+            greenLaserActive = true;
+            greenLaserTimer = 10;
+          }
+          scene.remove(orb);
+          powerUps.splice(i,1);
+        }
+      }
+      if(controls.isLocked){
+        let moveSpeed = 40;
+        if(sprintActive) moveSpeed *= 2;
+        if(moveForwardFlag) controls.moveForward(moveSpeed * delta);
+        if(moveBackwardFlag) controls.moveForward(-moveSpeed * delta);
+        if(moveLeftFlag) controls.moveRight(-moveSpeed * delta);
+        if(moveRightFlag) controls.moveRight(moveSpeed * delta);
+      }
+      for(let i = paintballs.length - 1; i >= 0; i--){
+        const ball = paintballs[i];
+        ball.userData.velocity.add(gravity.clone().multiplyScalar(delta));
+        ball.position.add(ball.userData.velocity.clone().multiplyScalar(delta));
+        const ballColor = ball.material.color.getHex();
+        const collisionPoint = ball.position.clone().sub(ball.userData.velocity.clone().normalize().multiplyScalar(BALL_RADIUS));
+        if(ball.position.y - BALL_RADIUS <= FLOOR_Y){
+          collisionPoint.y = FLOOR_Y + 0.01;
+          createSplatMark(collisionPoint, ballColor, null);
+          scene.remove(ball);
+          paintballs.splice(i,1);
+          continue;
+        }
+        for(let h = 0; h < robots.length; h++){
+          let robot = robots[h];
+          let box = new THREE.Box3().setFromObject(robot);
+          if(box.containsPoint(collisionPoint)){
+            let damage = Math.floor(Math.random() * 36) + 30;
+            robot.userData.health = (robot.userData.health || 100) - damage;
+            // Removed createHitIndicator call as requested.
+            robot.traverse(function(child) {
+              if(child.isMesh) {
+                child.material.emissive = new THREE.Color(0xff0000);
+              }
+            });
+            setTimeout(() => {
+              robot.traverse(function(child) {
+                if(child.isMesh) {
+                  child.material.emissive = new THREE.Color(0x000000);
+                }
+              });
+            }, 100);
+            scene.remove(ball);
+            paintballs.splice(i,1);
+            if(robot.userData.health <= 0){
+              createExplosion(collisionPoint, ballColor);
+              scene.remove(robot);
+              robots.splice(h,1);
+              score++;
+              let dropChance = Math.random();
+              if(dropChance < 0.05){ // decreased from 0.12
+                collisionPoint.y = 8;
+                createPowerUpOrb(collisionPoint, 'purple');
+              } else if(dropChance < 0.07){ // adjusted accordingly
+                collisionPoint.y = 8;
+                createPowerUpOrb(collisionPoint, 'green');
+              }
+            }
+            updateHUD();
+            break;
+          }
+        }
+        if(ball.position.length() > 1000){
+          scene.remove(ball);
+          paintballs.splice(i,1);
+        }
+      }
+      // Removed hit indicator updates since they are no longer created.
+      updateExplosions(delta);
+      checkPlayerCollision();
+      if(gameStarted){
+        for(let i = 0; i < robots.length; i++){
+          let robot = robots[i];
+          let direction = new THREE.Vector3();
+          direction.subVectors(camera.position, robot.position).normalize();
+          let speed = 30;
+          robot.userData.velocity = direction.multiplyScalar(speed);
+          robot.position.add(robot.userData.velocity.clone().multiplyScalar(delta));
+          robot.lookAt(camera.position);
+        }
+      }
+      renderer.render(scene, camera);
+      radarSweepAngle += delta * 1;
+      updateRadar();
+
+      // --- Dynamic Crosshair Update ---
+      // Increase spread if moving; otherwise, decrease toward default.
+      if (moveForwardFlag || moveBackwardFlag || moveLeftFlag || moveRightFlag) {
+        crosshairSpread = Math.min(maxCrosshairSpread, crosshairSpread + delta * 20);
+      } else {
+        crosshairSpread = Math.max(defaultCrosshairSpread, crosshairSpread - delta * 20);
+      }
+      updateCrosshair();
+    }
+  </script>
+</body>
+</html>
