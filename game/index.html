@@ -75,9 +75,7 @@
       left: 50%;
       transform: translateX(-50%);
     }
-    /* Aimer (crosshair) styling.
-       The container is 40x40 and the lines are positioned absolutely.
-       We’ll update the top/left positions via JavaScript to create a dynamic effect. */
+    /* Aimer (crosshair) styling */
     #aimer {
       position: fixed;
       top: 50%;
@@ -118,7 +116,7 @@
       top: 50%;
       transform: translateY(-50%);
     }
-    /* Center dot remains unchanged */
+    /* Center dot */
     #aimer .center-dot {
       position: absolute;
       top: 50%;
@@ -128,6 +126,37 @@
       background: #00ffcc;
       border-radius: 50%;
       transform: translate(-50%, -50%);
+    }
+    /* Reload bar styling */
+    #reload-container {
+      position: fixed;
+      top: calc(50% + 30px); /* 30px below the aimer's center */
+      left: 52%;           /* same horizontal center as the aimer */
+      transform: translateX(-50%);
+      width: 100px;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid #00ffcc;
+      display: none;
+      z-index: 15;
+    }
+    #reload-bar {
+      height: 100%;
+      width: 0%;
+      background: #00ffcc;
+    }
+    /* Boss message styling */
+    #bossMessage {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      color: red;
+      text-shadow: 0 0 20px red;
+      z-index: 100;
+      display: none;
+      font-family: 'Orbitron', sans-serif;
     }
     /* Flash overlay */
     #flash {
@@ -201,6 +230,12 @@
     <div class="line right"></div>
     <div class="center-dot"></div>
   </div>
+  <!-- Reload bar centered under the aimer -->
+  <div id="reload-container">
+    <div id="reload-bar"></div>
+  </div>
+  <!-- Boss message element -->
+  <div id="bossMessage"></div>
   <div id="flash"></div>
   <div id="powerupMessage">Purple Shotgun Mode!</div>
   <div id="gameover">Game Over<br><span style="font-size:32px; color:#fff;">Final Score: 0</span></div>
@@ -298,6 +333,11 @@
     let currentGun = null;
     let radarSweepAngle = 0;
 
+    // Reload-related variables.
+    const reloadTime = 2; // seconds to reload
+    let reloadTimer = 0;
+    let isReloading = false;
+
     // Dynamic crosshair variables.
     let crosshairSpread = 8;
     const defaultCrosshairSpread = 8;
@@ -307,7 +347,7 @@
       document.getElementById("hud-score").innerText = "Score: " + score;
       document.getElementById("hud-health-bar").style.width = hp + "%";
       let ammoText = "Ammo: " + ammo;
-      if (ammo === 0) {
+      if (ammo === 0 && !isReloading) {
         ammoText += " - Press R to reload";
       }
       document.getElementById("hud-ammo").innerText = ammoText;
@@ -444,6 +484,64 @@
       );
     }
 
+    // Spawn a boss robot every 30 seconds.
+    function spawnBoss() {
+      if(!gameStarted) return;
+      let forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0;
+      forward.normalize();
+      let offsetAngle = (Math.random() - 0.5) * (Math.PI / 2);
+      let spawnDirection = forward.clone().applyAxisAngle(new THREE.Vector3(0,1,0), offsetAngle);
+      let spawnDistance = Math.random() * 150 + 150;
+      let spawnPos = camera.position.clone().add(spawnDirection.multiplyScalar(spawnDistance));
+
+      const loader = new THREE.GLTFLoader();
+      const textureLoader = new THREE.TextureLoader();
+      loader.load(
+        'https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/scene.gltf',
+        function(gltf) {
+          let boss = gltf.scene;
+          const texture = textureLoader.load("https://raw.githubusercontent.com/brandoncamerer/brandoncamerer.github.io/main/gltf/textures/material_0_baseColor.png");
+          texture.flipY = false;
+          texture.encoding = THREE.sRGBEncoding;
+          boss.traverse(function(node){
+            if(node.isMesh){
+              node.material.map = texture;
+              node.material.needsUpdate = true;
+              node.material.color.set(0xffffff);
+              node.material.side = THREE.DoubleSide;
+              node.material.metalness = 0;
+              node.material.roughness = 1;
+            }
+          });
+          // Make the boss bigger.
+          boss.scale.set(50,50,50);
+          boss.updateMatrixWorld(true);
+          const bbox = new THREE.Box3().setFromObject(boss);
+          const offsetY = -bbox.min.y;
+          boss.position.set(spawnPos.x, FLOOR_Y + offsetY, spawnPos.z);
+          // Boss health is 10 hits.
+          boss.userData.health = 15;
+          boss.userData.isBoss = true;
+          // Boss velocity will be updated in the animation loop.
+          boss.userData.velocity = new THREE.Vector3(0, 0, 0);
+          robots.push(boss);
+          scene.add(boss);
+
+          // Flash "Boss robot spawned" message.
+          const bossMsg = document.getElementById("bossMessage");
+          bossMsg.innerText = "Boss robot spawned";
+          bossMsg.style.display = "block";
+          setTimeout(() => { bossMsg.style.display = "none"; }, 2000);
+        },
+        undefined,
+        function(error){
+          console.error("Error loading boss model:", error);
+        }
+      );
+    }
+
     function spawnRobot() {
       if(!gameStarted) return;
       let forward = new THREE.Vector3();
@@ -541,8 +639,7 @@
       }, 1000);
     }
 
-    // The createHitIndicator function has been removed as per your request.
-
+    // Collision detection.
     function checkPlayerCollision(){
       const currentTime = performance.now()/1000;
       if(currentTime - lastCollisionTime < 1) return;
@@ -574,7 +671,7 @@
       location.reload();
     }
 
-    // Updated radar function (unchanged from previous version).
+    // Radar update function with boss dot enlargement.
     function updateRadar() {
       const radarCanvas = document.getElementById("radar");
       const ctx = radarCanvas.getContext("2d");
@@ -661,7 +758,9 @@
             const radarY = centerY + rotatedY * scale;
             ctx.fillStyle = "rgba(255,0,0," + alpha + ")";
             ctx.beginPath();
-            ctx.arc(radarX, radarY, 3, 0, Math.PI * 2);
+            // Boss robots have a larger dot.
+            let dotRadius = robot.userData.isBoss ? 6 : 3;
+            ctx.arc(radarX, radarY, dotRadius, 0, Math.PI * 2);
             ctx.fill();
           }
         }
@@ -670,20 +769,23 @@
 
     // Dynamic crosshair update function.
     function updateCrosshair() {
-      // Assuming #aimer is 40x40, so the center is at 20px.
       let center = 20;
       let topLine = document.querySelector('#aimer .line.top');
       let bottomLine = document.querySelector('#aimer .line.bottom');
       let leftLine = document.querySelector('#aimer .line.left');
       let rightLine = document.querySelector('#aimer .line.right');
-      // Top line: position its top so that its bottom edge sits at center - spread.
       topLine.style.top = (center - crosshairSpread - 10) + "px";
-      // Bottom line: position its top edge at center + spread.
       bottomLine.style.top = (center + crosshairSpread) + "px";
-      // Left line: position its left so that its right edge sits at center - spread.
       leftLine.style.left = (center - crosshairSpread - 10) + "px";
-      // Right line: position its left edge at center + spread.
       rightLine.style.left = (center + crosshairSpread) + "px";
+    }
+
+    function startReloading(){
+      if(isReloading) return;
+      isReloading = true;
+      reloadTimer = reloadTime;
+      if(currentGun) currentGun.visible = false;
+      document.getElementById("reload-container").style.display = "block";
     }
 
     function init(){
@@ -717,6 +819,8 @@
         spawnRobot();
       }
       spawnIntervalId = setInterval(() => { if(gameStarted) spawnRobot(); }, 1000);
+      // Spawn a boss every 30 seconds.
+      setInterval(() => { if(gameStarted && !gameOver) spawnBoss(); }, 30000);
       controls = new THREE.PointerLockControls(camera, document.body);
       const instructions = document.getElementById("instructions");
       instructions.addEventListener("click", () => { 
@@ -761,9 +865,8 @@
           }
           break;
         case "KeyR":
-          if(ammo < 15) {
-            ammo = 15;
-            updateHUD();
+          if(ammo < 15 && !isReloading) {
+            startReloading();
           }
           break;
       }
@@ -781,17 +884,14 @@
       }
     }
 
-    // Modified shootPaintball function: add random perturbation based on crosshair spread
-    // and expand the aimer (increase crosshairSpread) when shooting repeatedly.
     function shootPaintball(){
-      if(!controls.isLocked || gameOver) return;
+      if(!controls.isLocked || gameOver || isReloading) return;
       if (ammo <= 0) {
           document.getElementById("hud-ammo").innerText = "Ammo: 0 - Press R to reload";
           return;
       }
       ammo--;
       updateHUD();
-      // Increase crosshair spread (aimer recoil) when shooting fast.
       crosshairSpread = Math.min(maxCrosshairSpread, crosshairSpread + 3);
       let startPos = GUN_MUZZLE_OFFSET.clone();
       camera.localToWorld(startPos);
@@ -825,7 +925,6 @@
         shootPurpleBurst(startPos);
         return;
       }
-      // Apply additional spread to the shot based on crosshairSpread.
       let spreadFactor = (crosshairSpread - defaultCrosshairSpread) * 0.02;
       if (spreadFactor < 0) spreadFactor = 0;
       direction.x += (Math.random() - 0.5) * spreadFactor;
@@ -850,6 +949,19 @@
       if(camera.position.y < GROUND_Y){
         camera.position.y = GROUND_Y;
         playerVelocityY = 0;
+      }
+      // Reload logic
+      if(isReloading){
+        reloadTimer -= delta;
+        let progress = Math.min(1, (reloadTime - reloadTimer) / reloadTime);
+        document.getElementById("reload-bar").style.width = (progress * 100) + "%";
+        if(reloadTimer <= 0){
+          isReloading = false;
+          ammo = 15;
+          updateHUD();
+          document.getElementById("reload-container").style.display = "none";
+          if(currentGun) currentGun.visible = true;
+        }
       }
       if(powerUpActive){
         powerUpTimer -= delta;
@@ -908,9 +1020,12 @@
           let robot = robots[h];
           let box = new THREE.Box3().setFromObject(robot);
           if(box.containsPoint(collisionPoint)){
-            let damage = Math.floor(Math.random() * 36) + 30;
-            robot.userData.health = (robot.userData.health || 100) - damage;
-            // Removed createHitIndicator call as requested.
+            if(robot.userData.isBoss){
+              robot.userData.health = (robot.userData.health || 10) - 1;
+            } else {
+              let damage = Math.floor(Math.random() * 36) + 30;
+              robot.userData.health = (robot.userData.health || 100) - damage;
+            }
             robot.traverse(function(child) {
               if(child.isMesh) {
                 child.material.emissive = new THREE.Color(0xff0000);
@@ -930,13 +1045,18 @@
               scene.remove(robot);
               robots.splice(h,1);
               score++;
-              let dropChance = Math.random();
-              if(dropChance < 0.05){ // decreased from 0.12
+              if(robot.userData.isBoss){
                 collisionPoint.y = 8;
                 createPowerUpOrb(collisionPoint, 'purple');
-              } else if(dropChance < 0.07){ // adjusted accordingly
-                collisionPoint.y = 8;
-                createPowerUpOrb(collisionPoint, 'green');
+              } else {
+                let dropChance = Math.random();
+                if(dropChance < 0.05){
+                  collisionPoint.y = 8;
+                  createPowerUpOrb(collisionPoint, 'purple');
+                } else if(dropChance < 0.07){
+                  collisionPoint.y = 8;
+                  createPowerUpOrb(collisionPoint, 'green');
+                }
               }
             }
             updateHUD();
@@ -948,7 +1068,6 @@
           paintballs.splice(i,1);
         }
       }
-      // Removed hit indicator updates since they are no longer created.
       updateExplosions(delta);
       checkPlayerCollision();
       if(gameStarted){
@@ -956,7 +1075,8 @@
           let robot = robots[i];
           let direction = new THREE.Vector3();
           direction.subVectors(camera.position, robot.position).normalize();
-          let speed = 30;
+          // Increase speed for boss robots.
+          let speed = robot.userData.isBoss ? 50 : 30;
           robot.userData.velocity = direction.multiplyScalar(speed);
           robot.position.add(robot.userData.velocity.clone().multiplyScalar(delta));
           robot.lookAt(camera.position);
@@ -966,8 +1086,6 @@
       radarSweepAngle += delta * 1;
       updateRadar();
 
-      // --- Dynamic Crosshair Update ---
-      // Increase spread if moving; otherwise, decrease toward default.
       if (moveForwardFlag || moveBackwardFlag || moveLeftFlag || moveRightFlag) {
         crosshairSpread = Math.min(maxCrosshairSpread, crosshairSpread + delta * 20);
       } else {
