@@ -520,8 +520,9 @@
           boss.updateMatrixWorld(true);
           const bbox = new THREE.Box3().setFromObject(boss);
           const offsetY = -bbox.min.y;
-          boss.position.set(spawnPos.x, FLOOR_Y + offsetY, spawnPos.z);
-          // Boss health is 10 hits.
+          // Adjusted Y position so the boss sits closer to the ground.
+          boss.position.set(spawnPos.x, FLOOR_Y + offsetY - 2, spawnPos.z);
+          // Boss health is 15 hits.
           boss.userData.health = 15;
           boss.userData.isBoss = true;
           // Boss velocity will be updated in the animation loop.
@@ -925,8 +926,8 @@
         shootPurpleBurst(startPos);
         return;
       }
-      let spreadFactor = (crosshairSpread - defaultCrosshairSpread) * 0.02;
-      if (spreadFactor < 0) spreadFactor = 0;
+      // Always add a small base randomness so shots never are perfectly straight.
+      let spreadFactor = ((crosshairSpread - defaultCrosshairSpread) * 0.02) + 0.01;
       direction.x += (Math.random() - 0.5) * spreadFactor;
       direction.y += (Math.random() - 0.5) * spreadFactor;
       direction.z += (Math.random() - 0.5) * spreadFactor;
@@ -1071,15 +1072,24 @@
       updateExplosions(delta);
       checkPlayerCollision();
       if(gameStarted){
+        // Update robot positions.
         for(let i = 0; i < robots.length; i++){
           let robot = robots[i];
-          let direction = new THREE.Vector3();
-          direction.subVectors(camera.position, robot.position).normalize();
-          // Increase speed for boss robots.
-          let speed = robot.userData.isBoss ? 50 : 30;
-          robot.userData.velocity = direction.multiplyScalar(speed);
-          robot.position.add(robot.userData.velocity.clone().multiplyScalar(delta));
-          robot.lookAt(camera.position);
+          if(robot.userData.isBoss){
+            // Boss robots move horizontally only.
+            let target = new THREE.Vector3(camera.position.x, robot.position.y, camera.position.z);
+            let direction = new THREE.Vector3().subVectors(target, robot.position).normalize();
+            let speed = 50; // Boss speed
+            robot.userData.velocity = direction.multiplyScalar(speed);
+            robot.position.add(robot.userData.velocity.clone().multiplyScalar(delta));
+            robot.lookAt(target);
+          } else {
+            let direction = new THREE.Vector3().subVectors(camera.position, robot.position).normalize();
+            let speed = 30; // Normal robot speed
+            robot.userData.velocity = direction.multiplyScalar(speed);
+            robot.position.add(robot.userData.velocity.clone().multiplyScalar(delta));
+            robot.lookAt(camera.position);
+          }
         }
       }
       renderer.render(scene, camera);
