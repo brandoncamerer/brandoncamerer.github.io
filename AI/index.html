@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Optimized 3D FPS Game with Castle</title>
+    <style>
+      /* Contents from css/style.css */
+      body {
+          margin: 0;
+          overflow: hidden;
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+          display: block;
+        }
+        #blocker {
+          position: absolute;
+          top: 0;
+          color: #ffffff;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+        }
+
+      
+        /* New styles for panel popup HUD with epic custom cursor */
+        #panelPopup {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 105;
+          /* Use an epic custom cursor */
+          cursor: url('https://cdn-icons-png.flaticon.com/512/149/149995.png'), auto;
+        }
+        #panelPopup .modalContent {
+          background: #fff;
+          padding: 0;
+          border-radius: 8px;
+          width: 90%;
+          height: 90%;
+          position: relative;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+          overflow: hidden;
+          cursor: default;
+        }
+        /* Style the image to fully use the container responsively */
+        #panelPopup .modalContent img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+        #panelPopup .modalContent button {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: #ff4500;
+          color: #fff;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          z-index: 1;
+        }
+    </style>
+    <!-- Include Three.js and PointerLockControls from CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+  </head>
+  <body>
+    <div id="blocker">
+      <div id="instructions">Click to play</div>
+    </div>
+    <!-- Rock Counter Display with Icon -->
+    <!-- Castle Health Bar (hidden until castle is built) -->
+    <!-- Game Over Display -->
+    <!-- Castle Build Popup -->
+    <!-- New HTML for in-game panel popup HUD -->
+    <div id="panelPopup">
+      <div class="modalContent">
+        <button id="panelClose">Close</button>
+        <img id="panelImage" src="" alt="Panel Image" />
+      </div>
+    </div>
+    
+    <!-- Inline all JavaScript below -->
+    <script type="module">
+      // --- terrain.js content ---
+      // Converted from 'export function' to plain functions.
+      function getTerrainHeight(x, z) {
+          const r = Math.sqrt(x * x + z * z);
+          const offset = 10;
+          const hillVariation = 5 * Math.sin(x / 50) * Math.cos(z / 50);
+          const shoreRadius = 200, fadeDistance = 50;
+          let factor = 1;
+          if (r > shoreRadius) {
+            factor = Math.max(0, 1 - (r - shoreRadius) / fadeDistance);
+          }
+          return offset + factor * hillVariation;
+      }
+      
+      function computeTerrainNormal(x, z) {
+          const eps = 0.1;
+          let hL = getTerrainHeight(x - eps, z);
+          let hR = getTerrainHeight(x + eps, z);
+          let hD = getTerrainHeight(x, z - eps);
+          let hU = getTerrainHeight(x, z + eps);
+          let dx = (hR - hL) / (2 * eps);
+          let dz = (hU - hD) / (2 * eps);
+          let normal = new THREE.Vector3(-dx, 1, -dz);
+          normal.normalize();
+          return normal;
+      }
+      
+      // --- controls.js content ---
+      function initControls(camera) {
+          const controls = new THREE.PointerLockControls(camera, document.body);
+          const blocker = document.getElementById("blocker");
+          const instructions = document.getElementById("instructions");
+          instructions.addEventListener("click", () => controls.lock());
+          controls.addEventListener("lock", () => {
+            blocker.style.display = "none";
+          });
+          controls.addEventListener("unlock", () => {
+            blocker.style.display = "flex";
+          });
+          return controls;
+      }
+      
+      // --- obstacles.js content ---
+      function initObstacles(scene, getTerrainHeight) {
+          let obstacles = [];
+          let rockCount = 0;
+
+          // Create trees in a grid (e.g. 2 rows x 5 columns for 10 trees)
+          const treeRows = 2;
+          const treeCols = 5;
+          const spacingX = 500 / (treeCols + 1); // total width = 500, centered from -250 to 250
+          const spacingZ = 500 / (treeRows + 1);
+          for (let row = 1; row <= treeRows; row++) {
+              for (let col = 1; col <= treeCols; col++) {
+                  let x = -250 + col * spacingX;
+                  let z = -250 + row * spacingZ;
+                  createTree(x, z, scene, getTerrainHeight, obstacles);
+              }
+          }
+
+          // Create rocks in a grid (e.g. 4 rows x 5 columns for 20 rocks)
+          const rockRows = 4;
+          const rockCols = 5;
+          const spacingXRock = 500 / (rockCols + 1);
+          const spacingZRock = 500 / (rockRows + 1);
+          for (let row = 1; row <= rockRows; row++) {
+              for (let col = 1; col <= rockCols; col++) {
+                  let x = -250 + col * spacingXRock;
+                  let z = -250 + row * spacingZRock;
+                  createRock(x, z, scene, getTerrainHeight, obstacles);
+              }
+          }
+
+          return { obstacles, rockCount };
+      }
+      
+      function createTree(x, z, scene, getTerrainHeight, obstacles) {
+          const h = getTerrainHeight(x, z);
+          // Increase trunk height from 16 to 20.
+          let trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(3, 3, 20, 8),
+            new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+          );
+          trunk.position.set(x, h + 10, z);
+          scene.add(trunk);
+          
+          // Create a group for the evergreen canopy.
+          const canopyGroup = new THREE.Group();
+          const bottomCone = new THREE.Mesh(
+            new THREE.ConeGeometry(10, 16, 8),
+            new THREE.MeshLambertMaterial({ color: 0x2e8b57 })
+          );
+          bottomCone.position.set(0, 0, 0);
+          const middleCone = new THREE.Mesh(
+            new THREE.ConeGeometry(8, 12, 8),
+            new THREE.MeshLambertMaterial({ color: 0x228b22 })
+          );
+          middleCone.position.set(0, 8, 0);
+          const topCone = new THREE.Mesh(
+            new THREE.ConeGeometry(5, 8, 8),
+            new THREE.MeshLambertMaterial({ color: 0x006400 })
+          );
+          topCone.position.set(0, 16, 0);
+          canopyGroup.add(bottomCone);
+          canopyGroup.add(middleCone);
+          canopyGroup.add(topCone);
+          canopyGroup.position.set(x, h + 18, z);
+          scene.add(canopyGroup);
+          obstacles.push({ x: x, z: z, radius: 5, type: "tree", meshes: [trunk, canopyGroup] });
+      }
+      
+      function createRock(x, z, scene, getTerrainHeight, obstacles) {
+          const h = getTerrainHeight(x, z);
+          let rock = new THREE.Mesh(
+            new THREE.DodecahedronGeometry(5, 0),
+            new THREE.MeshLambertMaterial({ color: 0x808080 })
+          );
+          rock.position.set(x, h + 2.5, z);
+          scene.add(rock);
+          obstacles.push({ x: x, z: z, radius: 3, type: "rock", mesh: rock });
+      }
+      
+      // --- environment.js content ---
+      const clouds = [];
+      
+      function initEnvironment(scene, getTerrainHeight) {
+        // Ocean.
+        const ocean = new THREE.Mesh(
+          new THREE.PlaneGeometry(3000, 3000),
+          new THREE.MeshLambertMaterial({ color: 0x1e90ff })
+        );
+        ocean.rotation.x = -Math.PI / 2;
+        scene.add(ocean);
+      
+        // Island.
+        const islandGeometry = new THREE.PlaneGeometry(500, 500, 25, 25);
+        islandGeometry.rotateX(-Math.PI / 2);
+        const posAttr = islandGeometry.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          let x = posAttr.getX(i);
+          let z = posAttr.getZ(i);
+          const r = Math.sqrt(x * x + z * z);
+          if (r > 200) {
+            const angle = Math.atan2(z, x);
+            const t = Math.min((r - 200) / 50, 1);
+            const shift = 5 * Math.sin(8 * angle) * t;
+            x = x + shift * Math.cos(angle);
+            z = z + shift * Math.sin(angle);
+            posAttr.setX(i, x);
+            posAttr.setZ(i, z);
+          }
+          const y = getTerrainHeight(x, z);
+          posAttr.setY(i, y);
+        }
+        posAttr.needsUpdate = true;
+        islandGeometry.computeVertexNormals();
+      
+        let cTex = document.createElement("canvas");
+        cTex.width = 256;
+        cTex.height = 256;
+        let ctx = cTex.getContext("2d");
+        ctx.fillStyle = "#4CAF50";
+        ctx.fillRect(0, 0, 256, 256);
+        for (let i = 0; i < 3000; i++) {
+          const x = Math.random() * 256;
+          const y = Math.random() * 256;
+          const bladeHeight = Math.random() * 10 + 5;
+          const angle = (Math.random() - 0.5) * 0.4;
+          ctx.strokeStyle = "rgba(30,130,30," + (Math.random() * 0.5 + 0.5) + ")";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + Math.cos(angle) * bladeHeight, y - Math.sin(angle) * bladeHeight);
+          ctx.stroke();
+        }
+        const grassTexture = new THREE.CanvasTexture(cTex);
+        grassTexture.wrapS = grassTexture.wrapT = THREE.RepeatWrapping;
+        grassTexture.repeat.set(25, 25);
+      
+        const sandTexture = new THREE.TextureLoader().load('path/to/sand_texture.jpg');
+        sandTexture.wrapS = sandTexture.wrapT = THREE.RepeatWrapping;
+        sandTexture.repeat.set(25, 25);
+      
+        const islandMaterial = new THREE.ShaderMaterial({
+          uniforms: {},
+          vertexShader: `
+            varying vec2 vUv;
+            varying float vDistance;
+            void main() {
+              vUv = uv;
+              vec3 worldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+              vDistance = length(worldPos.xz);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            varying vec2 vUv;
+            varying float vDistance;
+            float hash(vec2 p) {
+              return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+            float noise(vec2 p){
+              vec2 i = floor(p);
+              vec2 f = fract(p);
+              float a = hash(i);
+              float b = hash(i + vec2(1.0, 0.0));
+              float c = hash(i + vec2(0.0, 1.0));
+              float d = hash(i + vec2(1.0, 1.0));
+              vec2 u = f * f * (3.0 - 2.0 * f);
+              return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+            }
+            void main() {
+              float blend = smoothstep(200.0, 250.0, vDistance);
+              vec3 grassColor = vec3(0.2, 0.6, 0.2);
+              grassColor += 0.05 * noise(vUv * 100.0);
+              vec3 sandColor = vec3(0.94, 0.85, 0.55);
+              sandColor += 0.03 * noise(vUv * 150.0);
+              vec3 finalColor = mix(grassColor, sandColor, blend);
+              gl_FragColor = vec4(finalColor, 1.0);
+            }
+          `,
+        });
+        const islandMesh = new THREE.Mesh(islandGeometry, islandMaterial);
+        scene.add(islandMesh);
+      
+        const sun = new THREE.Mesh(
+          new THREE.SphereGeometry(30, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0xffd700 })
+        );
+        sun.position.set(200, 300, 100);
+        scene.add(sun);
+      
+        let sGlow = document.createElement("canvas");
+        sGlow.width = sGlow.height = 128;
+        let gCtx = sGlow.getContext("2d");
+        let grad = gCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        grad.addColorStop(0, "rgba(255,223,0,1)");
+        grad.addColorStop(0.5, "rgba(255,223,0,0.5)");
+        grad.addColorStop(1, "rgba(255,223,0,0)");
+        gCtx.fillStyle = grad;
+        gCtx.fillRect(0, 0, 128, 128);
+      
+        const sunGlow = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(sGlow),
+            blending: THREE.AdditiveBlending,
+          })
+        );
+        sunGlow.scale.set(150, 150, 1);
+        sunGlow.position.copy(sun.position);
+        scene.add(sunGlow);
+      
+        // Clouds.
+        for (let i = 0; i < 10; i++) {
+          let cloud = createCloud();
+          let a = Math.random() * 2 * Math.PI;
+          let d = 700 + Math.random() * 200;
+          cloud.position.set(Math.cos(a) * d + 10, 300 + Math.random() * 50, Math.sin(a) * d);
+          scene.add(cloud);
+          clouds.push(cloud);
+        }
+      }
+      
+      function createCloud() {
+        const cloudTexture = new THREE.TextureLoader().load('https://img001.prntscr.com/file/img001/qCkmrzHxQm6_nY8wSXF43g.png');
+        // Adjust filtering to help reduce halo artifacts.
+        cloudTexture.minFilter = THREE.LinearFilter;
+        cloudTexture.magFilter = THREE.LinearFilter;
+        
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+            map: cloudTexture, 
+            transparent: true,
+            // Discard fragments with very low alpha to remove the stroke.
+            alphaTest: 0.5 
+        });
+        const cloudSprite = new THREE.Sprite(spriteMaterial);
+        cloudSprite.scale.set(80, 50, 1);
+        return cloudSprite;
+      }
+      
+      function updateClouds(delta) {
+        const speed = 10;
+        for (let cloud of clouds) {
+          cloud.position.x += speed * delta;
+          if (cloud.position.x > 1000) {
+            cloud.position.x = -1000;
+          }
+        }
+      }
+      
+      // --- castle.js content ---
+      function createBattlements(width, depth, height, segmentLength, gapLength, material) {
+        const battlementsGroup = new THREE.Group();
+        const totalSegmentGap = segmentLength + gapLength;
+        const numSegments = Math.floor(width / totalSegmentGap);
+        const totalBattlementsWidth = numSegments * totalSegmentGap - gapLength;
+        const startOffset = (width - totalBattlementsWidth) / 2;
+        const battlementGeometry = new THREE.BoxGeometry(segmentLength, height, depth);
+        for (let i = 0; i < numSegments; i++) {
+          const merlon = new THREE.Mesh(battlementGeometry, material);
+          merlon.position.set(
+            -width / 2 + startOffset + i * totalSegmentGap + segmentLength / 2,
+            height / 2,
+            0
+          );
+          battlementsGroup.add(merlon);
+        }
+        return battlementsGroup;
+      }
+      
+      function buildCastle(scene, obstacles, castleWallBounds, getTerrainHeight, castlePosition = new THREE.Vector3(0, 0, 0), castleIndex = 0) {
+        const floorSize = 120;
+        const margin = 20;
+        const groundLevel = getTerrainHeight(castlePosition.x, castlePosition.z);
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          if (obstacles[i].type === "tree" || obstacles[i].type === "rock") {
+            const distSq = (obstacles[i].x - castlePosition.x) ** 2 + (obstacles[i].z - castlePosition.z) ** 2;
+            const clearRadiusSq = (floorSize / 2 + margin) ** 2;
+            if (distSq < clearRadiusSq) {
+              if (obstacles[i].meshes) {
+                obstacles[i].meshes.forEach(mesh => scene.remove(mesh));
+              } else if (obstacles[i].mesh) {
+                scene.remove(obstacles[i].mesh);
+              }
+              obstacles.splice(i, 1);
+            }
+          }
+        }
+        
+        const castle = new THREE.Group();
+        castle.name = "Castle " + (castleIndex + 1);
+        
+        const baseHue = (castleIndex * 0.33) % 1.0;
+        const stoneColor = new THREE.Color().setHSL(baseHue, 0.5, 0.5).getHex();
+        const floorColor = 0x7d7d7d;
+        const woodColor = 0x8B4513;
+        const flagColor = 0xFF0000;
+        const panelColor = 0x333333;
+        
+        const stoneMaterial = new THREE.MeshStandardMaterial({ color: stoneColor, roughness: 0.8, metalness: 0.1 });
+        const floorMaterial = new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.9, metalness: 0.1 });
+        const woodMaterial = new THREE.MeshStandardMaterial({ color: woodColor, roughness: 0.7, metalness: 0.0 });
+        const flagMaterial = new THREE.MeshBasicMaterial({ color: flagColor, side: THREE.DoubleSide });
+        const panelMaterialBase = new THREE.MeshBasicMaterial({ color: panelColor, side: THREE.DoubleSide });
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = "anonymous";
+      
+        const floorThickness = 3;
+        const wallHeight = 40;
+        const wallThickness = 5;
+        const gatehouseHeight = 50;
+        const towerRadius = 10;
+        const towerHeight = 55;
+        const battlementHeight = 4;
+        const battlementSegment = 3;
+        const battlementGap = 2;
+      
+        const panelWidth = 50;
+        const panelHeight = 20;
+      
+        const halfSize = floorSize / 2;
+        const floorY = floorThickness / 2;
+        const wallY = floorThickness + wallHeight / 2;
+        const gatehouseY = floorThickness + gatehouseHeight / 2;
+      
+        const floorGeometry = new THREE.BoxGeometry(floorSize, floorThickness, floorSize);
+        const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+        floorMesh.position.set(0, floorY, 0);
+        floorMesh.castShadow = true;
+        floorMesh.receiveShadow = true;
+        castle.add(floorMesh);
+      
+        const castleWallBoundsArray = castleWallBounds || [];
+        const addWallBounds = (minX, maxX, minZ, maxZ) => castleWallBoundsArray.push({ minX, maxX, minZ, maxZ });
+        const battlementMaterial = stoneMaterial;
+      
+        const backGeometry = new THREE.BoxGeometry(floorSize - 2 * towerRadius, wallHeight, wallThickness);
+        backGeometry.center();
+        const backWall = new THREE.Mesh(backGeometry, stoneMaterial);
+        backWall.position.set(0, wallY, -halfSize + wallThickness / 2);
+        backWall.name = "castleWall";
+        backWall.userData.castleIndex = castleIndex;
+        backWall.userData.blockCollision = true;
+        backWall.userData.collider = { 
+          halfSize: new THREE.Vector3((floorSize - 2 * towerRadius) / 2, wallHeight / 2, wallThickness / 2) 
+        };
+        backWall.castShadow = true;
+        backWall.receiveShadow = true;
+        castle.add(backWall);
+        addWallBounds(-halfSize + towerRadius, halfSize - towerRadius, -halfSize, -halfSize + wallThickness);
+      
+        const backBattlements = createBattlements(floorSize - 2 * towerRadius, wallThickness, battlementHeight, battlementSegment, battlementGap, battlementMaterial);
+        backBattlements.position.set(0, wallY + wallHeight / 2, -halfSize + wallThickness / 2);
+        castle.add(backBattlements);
+      
+        const openingWidth = 20;
+        const segmentWidth = (floorSize - 2 * towerRadius - openingWidth) / 2;
+      
+        const frontLeftGeometry = new THREE.BoxGeometry(segmentWidth, gatehouseHeight, wallThickness);
+        const frontLeft = new THREE.Mesh(frontLeftGeometry, stoneMaterial);
+        frontLeft.userData.collider = {
+          halfSize: new THREE.Vector3(segmentWidth / 2, gatehouseHeight / 2, wallThickness / 2)
+        };
+        frontLeft.position.set(-towerRadius - openingWidth / 2 - segmentWidth / 2, gatehouseY, halfSize - wallThickness / 2);
+        frontLeft.name = "castleWall";
+        frontLeft.userData.castleIndex = castleIndex;
+        frontLeft.castShadow = true;
+        frontLeft.receiveShadow = true;
+        castle.add(frontLeft);
+        addWallBounds(-halfSize + towerRadius, -openingWidth / 2, halfSize - wallThickness, halfSize);
+      
+        const frontLeftBattlements = createBattlements(segmentWidth, wallThickness, battlementHeight, battlementSegment, battlementGap, battlementMaterial);
+        frontLeftBattlements.position.set(frontLeft.position.x, gatehouseY + gatehouseHeight / 2, halfSize - wallThickness / 2);
+        castle.add(frontLeftBattlements);
+      
+        const frontRightGeometry = new THREE.BoxGeometry(segmentWidth, gatehouseHeight, wallThickness);
+        const frontRight = new THREE.Mesh(frontRightGeometry, stoneMaterial);
+        frontRight.userData.collider = {
+          halfSize: new THREE.Vector3(segmentWidth / 2, gatehouseHeight / 2, wallThickness / 2)
+        };
+        frontRight.position.set(towerRadius + openingWidth / 2 + segmentWidth / 2, gatehouseY, halfSize - wallThickness / 2);
+        frontRight.name = "castleWall";
+        frontRight.userData.castleIndex = castleIndex;
+        frontRight.castShadow = true;
+        frontRight.receiveShadow = true;
+        castle.add(frontRight);
+        addWallBounds(openingWidth / 2, halfSize - towerRadius, halfSize - wallThickness, halfSize);
+      
+        const frontRightBattlements = createBattlements(segmentWidth, wallThickness, battlementHeight, battlementSegment, battlementGap, battlementMaterial);
+        frontRightBattlements.position.set(frontRight.position.x, gatehouseY + gatehouseHeight / 2, halfSize - wallThickness / 2);
+        castle.add(frontRightBattlements);
+      
+        const sideGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, floorSize - 2 * towerRadius);
+        const leftWall = new THREE.Mesh(sideGeometry, stoneMaterial);
+        leftWall.userData.collider = {
+          halfSize: new THREE.Vector3(wallThickness / 2, wallHeight / 2, (floorSize - 2 * towerRadius) / 2)
+        };
+        leftWall.position.set(-halfSize + wallThickness / 2, wallY, 0);
+        leftWall.name = "castleWall";
+        leftWall.userData.castleIndex = castleIndex;
+        leftWall.castShadow = true;
+        leftWall.receiveShadow = true;
+        castle.add(leftWall);
+        addWallBounds(-halfSize, -halfSize + wallThickness, -halfSize + towerRadius, halfSize - towerRadius);
+      
+        const leftBattlements = createBattlements(floorSize - 2 * towerRadius, wallThickness, battlementHeight, battlementSegment, battlementGap, battlementMaterial);
+        leftBattlements.position.set(-halfSize + wallThickness / 2, wallY + wallHeight / 2, 0);
+        leftBattlements.rotation.y = Math.PI / 2;
+        castle.add(leftBattlements);
+      
+        const rightWall = new THREE.Mesh(sideGeometry, stoneMaterial);
+        rightWall.userData.collider = {
+          halfSize: new THREE.Vector3(wallThickness / 2, wallHeight / 2, (floorSize - 2 * towerRadius) / 2)
+        };
+        rightWall.position.set(halfSize - wallThickness / 2, wallY, 0);
+        rightWall.name = "castleWall";
+        rightWall.userData.castleIndex = castleIndex;
+        rightWall.castShadow = true;
+        rightWall.receiveShadow = true;
+        castle.add(rightWall);
+        addWallBounds(halfSize - wallThickness, halfSize, -halfSize + towerRadius, halfSize - towerRadius);
+      
+        const rightBattlements = createBattlements(floorSize - 2 * towerRadius, wallThickness, battlementHeight, battlementSegment, battlementGap, battlementMaterial);
+        rightBattlements.position.set(halfSize - wallThickness / 2, wallY + wallHeight / 2, 0);
+        rightBattlements.rotation.y = Math.PI / 2;
+        castle.add(rightBattlements);
+      
+        const towerMaterial = stoneMaterial;
+        const originalTowerRadius = 10;
+        const originalTowerHeight = 55;
+        const towerPositions = [
+          new THREE.Vector3(-halfSize + originalTowerRadius, floorThickness + originalTowerHeight / 2, -halfSize + originalTowerRadius),
+          new THREE.Vector3(halfSize - originalTowerRadius, floorThickness + originalTowerHeight / 2, -halfSize + originalTowerRadius),
+          new THREE.Vector3(-halfSize + originalTowerRadius, floorThickness + originalTowerHeight / 2, halfSize - originalTowerRadius),
+          new THREE.Vector3(halfSize - originalTowerRadius, floorThickness + originalTowerHeight / 2, halfSize - originalTowerRadius)
+        ];
+      
+        towerPositions.forEach((pos, index) => {
+          // Set the same size for all pillars
+          const currentTowerRadius = 16; // same for back and front
+          const currentTowerHeight = 70; // same for all pillars
+          pos.y = floorThickness + currentTowerHeight / 2;
+          const towerGeo = new THREE.CylinderGeometry(currentTowerRadius, currentTowerRadius, currentTowerHeight, 16);
+          const tower = new THREE.Mesh(towerGeo, towerMaterial);
+          tower.position.copy(pos);
+          tower.name = "castlePillar";
+          tower.castShadow = true;
+          tower.receiveShadow = true;
+          castle.add(tower);
+      
+          const numBattlementSections = 8;
+          for (let i = 0; i < numBattlementSections; i++) {
+              const angle = (i / numBattlementSections) * Math.PI * 2;
+              const merlonGeometry = new THREE.BoxGeometry(battlementSegment * 1.5, battlementHeight, wallThickness * 0.5);
+              const merlon = new THREE.Mesh(merlonGeometry, battlementMaterial);
+              const radiusOffset = currentTowerRadius - wallThickness * 0.25;
+              const towerTopY = floorThickness + currentTowerHeight + battlementHeight / 2;
+              merlon.position.set(
+                  pos.x + Math.cos(angle) * radiusOffset,
+                  towerTopY,
+                  pos.z + Math.sin(angle) * radiusOffset
+              );
+              merlon.rotation.y = angle + Math.PI / 2;
+              merlon.castShadow = true;
+              castle.add(merlon);
+          }
+      
+          // Optionally add flagpole and flag for towers that require it.
+          if (index >= 2) {
+              const poleHeight = 15;
+              const poleGeometry = new THREE.CylinderGeometry(0.5, 0.5, poleHeight, 8);
+              const pole = new THREE.Mesh(poleGeometry, woodMaterial);
+              pole.position.set(pos.x, floorThickness + currentTowerHeight + poleHeight / 2, pos.z);
+              pole.castShadow = true;
+              castle.add(pole);
+      
+              const flagGeometry = new THREE.PlaneGeometry(8, 5);
+              const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+              flag.position.set(4, poleHeight / 2 - 3.5, 0.6);
+              flag.rotation.y = Math.PI;
+              pole.add(flag);
+          }
+        });
+      
+        const panelImages = [
+          "https://img001.prntscr.com/file/img001/_3zevHnzSBinz6l0gZQzSg.jpg",
+          "https://img001.prntscr.com/file/img001/BwCAk_KWQXW9uBuV827Agg.jpg",
+          "https://img001.prntscr.com/file/img001/7_AIcSr3SFmr-HKgjL3JHw.jpg",
+          "https://img001.prntscr.com/file/img001/Gwfp4qs4QTC_R2-RiH2wHA.jpg",
+          "https://img001.prntscr.com/file/img001/p1JnvUtpRTKac84i5pVT8A.jpg",
+          "https://img001.prntscr.com/file/img001/HQ7FyHKlQaK0okaXn34qjQ.jpg",
+          "https://img001.prntscr.com/file/img001/3iP-vC_8QWWFq2S48GLMKA.jpg",
+          "https://img001.prntscr.com/file/img001/mIqpwceWTZizVlYd9hVc8Q.jpg",
+          "https://img001.prntscr.com/file/img001/Pr63Ada5TrOo3gVOUti6hw.jpg"
+        ];
+        const panelLinks = [
+          "https://gemini.google.com/app",
+          "https://example.com/panel-link-2",
+          "https://example.com/panel-link-3",
+          "https://gemini.google.com/app",
+          "https://example.com/panel-link-5",
+          "https://example.com/panel-link-6",
+          "https://example.com/panel-link-7",
+          "https://example.com/panel-link-8",
+          "https://example.com/panel-link-9"
+        ];
+      
+        const panelY = floorThickness + 25;
+        const offset = 2;
+        const leftPanelPos = new THREE.Vector3(-halfSize + wallThickness + offset, panelY, 0);
+        const rightPanelPos = new THREE.Vector3(halfSize - wallThickness - offset, panelY, 0);
+        const backPanelPos = new THREE.Vector3(0, panelY, -halfSize + wallThickness + offset);
+      
+        const baseIdx = castleIndex * 3;
+        const leftImage = panelImages[baseIdx + 0];
+        const rightImage = panelImages[baseIdx + 1];
+        const backImage = panelImages[baseIdx + 2];
+      
+        const leftTexture = textureLoader.load(leftImage);
+        const borderMargin = 2; // adjust as needed for a thicker/thinner border
+        const leftPanelGroup = new THREE.Group();
+        leftPanelGroup.position.copy(leftPanelPos);
+        leftPanelGroup.rotation.y = Math.PI / 2;
+        
+        const leftBorderMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth + borderMargin, panelHeight + borderMargin),
+          new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
+        );
+        leftBorderMesh.position.set(0, 0, -0.1); // slight offset so border is behind the panel
+        leftPanelGroup.add(leftBorderMesh);
+        
+        const leftPanel = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth, panelHeight),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, map: leftTexture, side: THREE.DoubleSide })
+        );
+        leftPanel.userData.url = panelLinks[baseIdx + 0];
+        leftPanel.name = "castlePanel";
+        leftPanelGroup.add(leftPanel);
+        castle.add(leftPanelGroup);
+      
+        const rightTexture = textureLoader.load(rightImage);
+        const rightPanelGroup = new THREE.Group();
+        rightPanelGroup.position.copy(rightPanelPos);
+        rightPanelGroup.rotation.y = -Math.PI / 2;
+        
+        const rightBorderMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth + borderMargin, panelHeight + borderMargin),
+          new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
+        );
+        rightBorderMesh.position.set(0, 0, -0.1);
+        rightPanelGroup.add(rightBorderMesh);
+        
+        const rightPanel = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth, panelHeight),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, map: rightTexture, side: THREE.DoubleSide })
+        );
+        rightPanel.userData.url = panelLinks[baseIdx + 1];
+        rightPanel.name = "castlePanel";
+        rightPanelGroup.add(rightPanel);
+        castle.add(rightPanelGroup);
+      
+        const backTexture = textureLoader.load(backImage);
+        backTexture.center.set(0.5, 0.5); // Center the texture for rotation/scaling
+        backTexture.repeat.x = -1; // Flip texture horizontally
+        const backPanelGroup = new THREE.Group();
+        backPanelGroup.position.copy(backPanelPos);
+        backPanelGroup.rotation.y = Math.PI;
+        
+        const backBorderMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth + borderMargin, panelHeight + borderMargin),
+          new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
+        );
+        backBorderMesh.position.set(0, 0, 0.1); // Change offset so the border is behind the panel
+        backPanelGroup.add(backBorderMesh);
+        
+        const backPanel = new THREE.Mesh(
+          new THREE.PlaneGeometry(panelWidth, panelHeight),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, map: backTexture, side: THREE.DoubleSide })
+        );
+        backPanel.userData.url = panelLinks[baseIdx + 2];
+        backPanel.name = "castlePanel";
+        backPanelGroup.add(backPanel);
+        castle.add(backPanelGroup);
+      
+        return castle;
+      }
+      
+      // --- main.js content ---
+      // No module imports; the functions above are now in scope.
+      let scene, camera, renderer, controls;
+      let obstacles = [];
+      let rockCount = 0;
+      let thrownRocks = [];
+      let castleWalls = [];
+      let castleScreens = [];
+      let castlePanels = [];
+      let velocity = new THREE.Vector3();
+      let direction = new THREE.Vector3();
+      let canJump = true;
+      let prevTime = performance.now();
+      const GRAVITY = 392;
+      const playerRadius = 5;
+      
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.Fog(0x87ceeb, 200, 1500);
+      
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        const baseHeight = getTerrainHeight(0, 0);
+        controls = initControls(camera);
+        controls.getObject().position.set(0, getTerrainHeight(250, 0) + 250, 0);
+        camera.lookAt(new THREE.Vector3(0, getTerrainHeight(250, 0) + 0, 600));
+      
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.outputEncoding = THREE.SRGBEncoding;
+        renderer.shadowMap.enabled = false;
+        document.body.appendChild(renderer.domElement);
+      
+        initEnvironment(scene, getTerrainHeight);
+        const obstacleData = initObstacles(scene, getTerrainHeight);
+        obstacles = obstacleData.obstacles;
+      
+        spawnCastles();
+        createMountains();
+      
+        const specialObj = createSpecialObject(getTerrainHeight);
+        specialObj.position.set(-170, getTerrainHeight(200, -250) + 2.5, -210);
+        scene.add(specialObj);
+      
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(200, 300, 100);
+        directionalLight.castShadow = false;
+        scene.add(directionalLight);
+      
+        initInput();
+        window.addEventListener("resize", onWindowResize);
+        animate();
+      }
+      
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      
+      function spawnCastles() {
+        const castleCount = 3;
+        const radius = 200;
+        const bannerTexts = [
+          "Image Generation",
+          "Code Generation",
+          "Text Generation"
+        ];
+        
+        for (let i = 0; i < castleCount; i++) {
+          const angle = (i / castleCount) * 2 * Math.PI;
+          const pos = new THREE.Vector3(
+            Math.cos(angle) * radius,
+            0,
+            Math.sin(angle) * radius
+          );
+          const castleWallBounds = [];
+          const castle = buildCastle(scene, obstacles, castleWallBounds, getTerrainHeight, pos, i);
+          castle.position.copy(pos);
+          castle.rotation.y = Math.atan2(-pos.x, -pos.z);
+          castle.updateMatrixWorld(true);
+          scene.add(castle);
+      
+          const castleLight = new THREE.PointLight(0xffffff, 1.5, 300);
+          castleLight.position.set(0, 50, 0);
+          castle.add(castleLight);
+      
+          castle.traverse(child => {
+            if (child.isMesh) {
+              if (child.name === "castleWall") {
+                child.material = new THREE.MeshLambertMaterial({
+                  color: 0x777777,
+                  emissive: 0x222222,
+                  emissiveIntensity: 0.5
+                });
+                child.userData.castleIndex = i;
+                castleWalls.push(child);
+              }
+              if (child.name === "castlePanel") {
+                castlePanels.push(child);
+              }
+              if (child.name === "castleScreen") {
+                castleScreens.push(child);
+              }
+            }
+          });
+        
+          let bannerTextColor = "#ffffff";
+          const wall = castle.getObjectByName("castleWall");
+          if (wall && wall.material && wall.material.color) {
+            bannerTextColor = '#' + wall.material.color.getHexString();
+          }
+      
+          const banner = createBanner(bannerTexts[i]);
+          banner.position.set(0, 45, 62);
+          castle.add(banner);
+        }
+      }
+      
+      function createMountains() {
+        function createMountain(a, r) {
+          let h = 50 + Math.random() * 50;
+          let b = 80 + Math.random() * 50;
+          let mountain = new THREE.Mesh(
+            new THREE.ConeGeometry(b, h, 4),
+            new THREE.MeshLambertMaterial({ color: 0x556b2f })
+          );
+          mountain.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r);
+          mountain.rotation.y = Math.random() * Math.PI;
+          scene.add(mountain);
+        }
+        for (let i = 0; i < 10; i++) {
+          createMountain((i / 10) * 2 * Math.PI, 600);
+        }
+      }
+      
+      function initInput() {
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup", onKeyUp);
+        document.addEventListener("mousedown", onMouseDown);
+      }
+      
+      function onMouseDown(e) {
+        if (e.button === 0 && rockCount > 0 && controls.isLocked) {
+          rockCount = 0;
+          let rockGeometry = new THREE.DodecahedronGeometry(5, 0);
+          let rockMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
+          let thrownRockMesh = new THREE.Mesh(rockGeometry, rockMaterial);
+          let camPos = controls.getObject().position.clone();
+          thrownRockMesh.position.copy(camPos);
+          let throwDir = new THREE.Vector3();
+          camera.getWorldDirection(throwDir);
+          thrownRockMesh.position.add(throwDir.clone().multiplyScalar(5));
+          let rockVelocity = throwDir.clone().multiplyScalar(200);
+          rockVelocity.y += 50;
+          thrownRocks.push({ mesh: thrownRockMesh, velocity: rockVelocity });
+          scene.add(thrownRockMesh);
+        }
+      }
+      
+      let moveF = false, moveB = false, moveL = false, moveR = false, run = false;
+      
+      function onKeyDown(e) {
+        switch (e.code) {
+          case "ArrowUp":
+          case "KeyW":
+            moveF = true;
+            break;
+          case "ArrowLeft":
+          case "KeyA":
+            moveL = true;
+            break;
+          case "ArrowDown":
+          case "KeyS":
+            moveB = true;
+            break;
+          case "ArrowRight":
+          case "KeyD":
+            moveR = true;
+            break;
+          case "ShiftLeft":
+          case "ShiftRight":
+            run = true;
+            break;
+          case "Space":
+            if (canJump) {
+              velocity.y = 80;
+              canJump = false;
+            }
+            break;
+          case "KeyE":
+            handleInteraction();
+            break;
+        }
+      }
+      
+      function onKeyUp(e) {
+        switch (e.code) {
+          case "ArrowUp":
+          case "KeyW":
+            moveF = false;
+            break;
+          case "ArrowLeft":
+          case "KeyA":
+            moveL = false;
+            break;
+          case "ArrowDown":
+          case "KeyS":
+            moveB = false;
+            break;
+          case "ArrowRight":
+          case "KeyD":
+            moveR = false;
+            break;
+          case "ShiftLeft":
+          case "ShiftRight":
+            run = false;
+            break;
+        }
+      }
+      
+      // --- Updated popup functions ---
+      function showPanelPopup(url) {
+        window.open(url, '_blank');
+      }
+      
+      function hidePanelPopup() {
+        const popup = document.getElementById("panelPopup");
+        const image = document.getElementById("panelImage");
+        popup.style.display = "none";
+        image.src = "";
+        // Automatically re-lock pointer so the game resumes without needing a click.
+        controls.lock();
+      }
+      
+      // Add the event listener for the popup close button.
+      document.getElementById("panelClose").addEventListener("click", hidePanelPopup);
+      
+      // --- Update interaction handler ---
+      function handleInteraction() {
+        const playerPos = controls.getObject().position;
+        const interactionDistance = 25;
+        for (let i = 0; i < castlePanels.length; i++) {
+          let panelPos = new THREE.Vector3();
+          castlePanels[i].getWorldPosition(panelPos);
+          if (playerPos.distanceTo(panelPos) < interactionDistance) {
+            if (castlePanels[i].userData.url) {
+              showPanelPopup(castlePanels[i].userData.url);
+            } else {
+              console.log("No URL defined for this panel.");
+            }
+            return;
+          }
+        }
+        for (let i = 0; i < castleScreens.length; i++) {
+          let screenPos = new THREE.Vector3();
+          castleScreens[i].getWorldPosition(screenPos);
+          if (playerPos.distanceTo(screenPos) < interactionDistance) {
+            console.log("Castle screen interaction triggered.");
+            return;
+          }
+        }
+        handleRockPickup();
+      }
+      
+      function handleRockPickup() {
+        if (rockCount >= 1) return;
+        const playerPos = controls.getObject().position;
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          if (obstacles[i].type === "rock") {
+            const d = playerPos.distanceTo(obstacles[i].mesh.position);
+            if (d < 15) {
+              rockCount = 1;
+              scene.remove(obstacles[i].mesh);
+              obstacles.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+      
+      // Modified spawnSplash function with a smaller splash and an upward splash effect
+      function spawnSplash(pos) {
+        // Create canvas for the splash texture.
+        const splashCanvas = document.createElement('canvas');
+        splashCanvas.width = 256;
+        splashCanvas.height = 256;
+        const ctx = splashCanvas.getContext('2d');
+        const center = 128;
+    
+        // --- Draw the initial splash pattern (foam and droplets) ---
+        function drawInitialSplash() {
+            ctx.clearRect(0, 0, 256, 256); // Clear canvas
+            const gradient = ctx.createRadialGradient(center, center, 0, center, center, center * 0.5);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+            gradient.addColorStop(0.3, 'rgba(200, 220, 255, 0.7)');
+            gradient.addColorStop(0.6, 'rgba(180, 210, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(150, 200, 255, 0.1)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(center, center, center * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+    
+            const numDroplets = 8 + Math.floor(Math.random() * 10);
+            ctx.fillStyle = 'rgba(200, 220, 255, 0.6)';
+            for (let i = 0; i < numDroplets; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * center * 0.4 + center * 0.05;
+                const x = center + Math.cos(angle) * radius;
+                const y = center + Math.sin(angle) * radius;
+                const size = Math.random() * 2.0 + 1;
+                ctx.beginPath();
+                ctx.ellipse(x, y, size * (0.8 + Math.random() * 0.4), size * (0.8 + Math.random() * 0.4), Math.random() * Math.PI, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    
+        drawInitialSplash(); // Draw the initial state
+    
+        const splashTexture = new THREE.CanvasTexture(splashCanvas);
+    
+        // --- Create Plane Geometry and Mesh (for the main splash) ---
+        const planeSize = 30; // Smaller overall plane size
+        const splashGeo = new THREE.PlaneGeometry(planeSize, planeSize);
+        const splashMaterial = new THREE.MeshBasicMaterial({
+            map: splashTexture,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+        const splashMesh = new THREE.Mesh(splashGeo, splashMaterial);
+        splashMesh.position.copy(pos);
+        splashMesh.position.y = pos.y + 0.01;
+        splashMesh.rotation.x = -Math.PI / 2;
+        // Animate from a small scale to a moderate size.
+        const initialScale = 0.05;
+        const finalScale = 0.5 * planeSize; 
+        splashMesh.scale.set(initialScale, initialScale, initialScale);
+        scene.add(splashMesh);
+    
+        // --- Create a secondary upward splash mesh ---
+        const splashUpMesh = splashMesh.clone();
+        // Give it its own material instance.
+        splashUpMesh.material = splashMaterial.clone();
+        splashUpMesh.position.copy(pos);
+        splashUpMesh.position.y += 0.01; // start just above the water
+        scene.add(splashUpMesh);
+    
+        const mainDuration = 1500; // Duration for the main splash effect
+        const upDuration = 800;    // Duration for the upward splash
+        let elapsed = 0;
+        const interval = 16; // roughly 60fps
+        const maxOpacity = 0.95;
+    
+        const anim = setInterval(() => {
+            elapsed += interval;
+            const t = Math.min(elapsed / mainDuration, 1.0);
+            // --- Animate main splash scale and opacity ---
+            const scaleProgress = t * (2 - t); // EaseOutQuad
+            const currentScale = initialScale + (finalScale - initialScale) * scaleProgress;
+            splashMesh.scale.set(currentScale, currentScale, currentScale);
+            splashMaterial.opacity = maxOpacity * (1.0 - t * t);
+    
+            // --- Redraw texture for ripple effect ---
+            drawInitialSplash();
+            const rippleMaxRadius = center;
+            const rippleThickness = 3;
+            const numRipples = 2;
+            for (let i = 0; i < numRipples; i++) {
+                const rippleT = Math.max(0, t * 1.2 - i * 0.2);
+                if (rippleT > 0 && rippleT <= 1) {
+                    const currentRadius = rippleMaxRadius * rippleT;
+                    const rippleOpacity = (1.0 - rippleT) * 0.7;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${rippleOpacity})`;
+                    ctx.lineWidth = rippleThickness * (1.0 - rippleT * 0.5);
+                    ctx.beginPath();
+                    ctx.arc(center, center, currentRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            splashTexture.needsUpdate = true;
+    
+            // --- Animate upward splash effect separately ---
+            const tUp = Math.min(elapsed / upDuration, 1.0);
+            // Move upward by a small amount (e.g. 2 units)
+            splashUpMesh.position.y = pos.y + 0.01 + 2 * tUp;
+            // Fade upward splash faster
+            splashUpMesh.material.opacity = maxOpacity * (1 - tUp);
+    
+            // --- Clean up ---
+            if (t >= 1.0 && tUp >= 1.0) {
+                clearInterval(anim);
+                if (splashMesh.parent === scene) {
+                    scene.remove(splashMesh);
+                }
+                if (splashUpMesh.parent === scene) {
+                    scene.remove(splashUpMesh);
+                }
+                if (splashGeo) splashGeo.dispose();
+                if (splashMaterial) splashMaterial.dispose();
+                if (splashTexture) splashTexture.dispose();
+            }
+        }, interval);
+    }
+      
+      function isOverWater(pos) {
+        // The island covers from -250 to 250 so the rock is over water
+        // only if it is outside these bounds.
+        return Math.abs(pos.x) > 250 || Math.abs(pos.z) > 250;
+      }
+      
+      function animate() {
+        requestAnimationFrame(animate);
+        const t = performance.now();
+        const delta = (t - prevTime) / 1000;
+        updateClouds(delta);
+        if (controls.isLocked) {
+          const player = controls.getObject();
+          const oldPos = player.position.clone();
+          velocity.x -= velocity.x * 10 * delta;
+          velocity.z -= velocity.z * 10 * delta;
+          direction.set(
+            Number(moveR) - Number(moveL),
+            0,
+            Number(moveB) - Number(moveF)
+          ).normalize();
+          const accel = 400 * (run ? 2 : 1);
+          if (moveF || moveB) velocity.z -= direction.z * accel * delta;
+          if (moveL || moveR) velocity.x -= direction.x * accel * delta;
+          velocity.y -= GRAVITY * delta;
+          const localDisp = new THREE.Vector3(-velocity.x * delta, 0, -velocity.z * delta);
+          const worldDisp = localDisp.clone().applyQuaternion(camera.quaternion);
+          const candidate = oldPos.clone().add(worldDisp);
+          candidate.x = Math.max(-250, Math.min(250, candidate.x));
+          candidate.z = Math.max(-250, Math.min(250, candidate.z));
+          if (collides(candidate)) {
+            candidate.x = oldPos.x;
+            candidate.z = oldPos.z;
+          }
+          player.position.copy(candidate);
+          player.position.y += velocity.y * delta;
+          const floorHeight = getTerrainHeight(player.position.x, player.position.z) + 10;
+          if (player.position.y < floorHeight) {
+            player.position.y = floorHeight;
+            velocity.y = 0;
+            canJump = true;
+          }
+        }
+      
+        // Define the water (ocean) level – the ocean plane sits at y = 0.
+        const waterLevel = 0;
+      
+        for (let i = thrownRocks.length - 1; i >= 0; i--) {
+          let rock = thrownRocks[i];
+          rock.mesh.position.add(rock.velocity.clone().multiplyScalar(delta));
+          rock.velocity.y -= GRAVITY * delta * 0.5;
+      
+          // Check if the rock enters the water zone
+          if (rock.mesh.position.y <= waterLevel + 2.5 && isOverWater(rock.mesh.position)) {
+            // Water branch: trigger splash once then let it fall through.
+            if (!rock.hasSplashed) {
+              rock.hasSplashed = true;
+              spawnSplash(rock.mesh.position);
+            }
+            if (rock.mesh.position.y < waterLevel - 30) {
+              scene.remove(rock.mesh);
+              thrownRocks.splice(i, 1);
+              continue;
+            }
+          } else {
+            // For ground collision, decide if we're on island vs. water.
+            let groundY;
+            if (isOverWater(rock.mesh.position)) {
+              // Over water but not deep enough yet – let it fall lower.
+              groundY = waterLevel + 2.5;
+            } else {
+              groundY = getTerrainHeight(rock.mesh.position.x, rock.mesh.position.z) + 2.5;
+            }
+            if (rock.mesh.position.y <= groundY || rock.velocity.length() < 2.0) {
+              rock.mesh.position.y = groundY;
+              obstacles.push({ type: "rock", mesh: rock.mesh, radius: 5 });
+              thrownRocks.splice(i, 1);
+              continue;
+            }
+          }
+      
+          // Collision detection with castle walls remains unchanged.
+          for (let wall of castleWalls) {
+            if (wall.userData.blockCollision === false) continue;
+            let box = new THREE.Box3().setFromObject(wall);
+            box.expandByScalar(1.0);
+            if (box.containsPoint(rock.mesh.position)) {
+              let newVel = new THREE.Vector3(
+                -rock.velocity.x * 0.4,
+                Math.abs(rock.velocity.y) * 0.4,
+                -rock.velocity.z * 0.4
+              );
+              if (newVel.length() < 5) {
+                newVel.setLength(5);
+              }
+              rock.velocity.copy(newVel);
+              rock.mesh.position.add(rock.velocity.clone().multiplyScalar(delta));
+              if (box.containsPoint(rock.mesh.position)) {
+                let center = new THREE.Vector3();
+                box.getCenter(center);
+                let pushDir = rock.mesh.position.clone().sub(center).normalize();
+                rock.mesh.position.add(pushDir.multiplyScalar(5));
+              }
+              break;
+            }
+          }
+          if (rock.mesh.position.length() > 1000) {
+            scene.remove(rock.mesh);
+            thrownRocks.splice(i, 1);
+          }
+        }
+        prevTime = t;
+        renderer.render(scene, camera);
+      }
+      
+      function collides(pos) {
+        const margin = playerRadius;
+        for (let wall of castleWalls) {
+          if (wall.userData.blockCollision === false) continue;
+          wall.updateMatrixWorld(true);
+          if (!wall.userData.collider) continue;
+          const invMatrix = new THREE.Matrix4().copy(wall.matrixWorld).invert();
+          const localPos = pos.clone().applyMatrix4(invMatrix);
+          const half = wall.userData.collider.halfSize;
+          if (
+            Math.abs(localPos.x) <= (half.x + margin) &&
+            Math.abs(localPos.y) <= (half.y + margin) &&
+            Math.abs(localPos.z) <= (half.z + margin)
+          ) {
+            console.log("Collision with wall:", wall.name);
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      function createBanner(text) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 48;
+        const ctx = canvas.getContext("2d");
+        const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, "#4b0000");
+        bgGradient.addColorStop(1, "#1a0000");
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, 256, 48);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#C9B037";
+        ctx.strokeRect(0, 0, 256, 48);
+        ctx.font = "bold 24px 'Old English Text MT', 'Uncial Antiqua', serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#000000";
+        ctx.strokeText(text, 128, 24);
+        const textGradient = ctx.createLinearGradient(0, 0, 256, 0);
+        textGradient.addColorStop(0, "#fff1a8");
+        textGradient.addColorStop(0.5, "#FFD700");
+        textGradient.addColorStop(1, "#b8860b");
+        ctx.fillStyle = textGradient;
+        ctx.fillText(text, 128, 24);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        const geometry = new THREE.PlaneGeometry(80, 15);
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+          transparent: true
+        });
+        const banner = new THREE.Mesh(geometry, material);
+        return banner;
+      }
+      
+      function createSpecialObject(getTerrainHeight) {
+        const pedestalGeo = new THREE.CylinderGeometry(3, 3, 5, 16);
+        const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
+        const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+        pedestal.castShadow = true;
+        pedestal.receiveShadow = true;
+        const orbGeo = new THREE.SphereGeometry(2, 16, 16);
+        const orbMat = new THREE.MeshStandardMaterial({ 
+          color: 0x00ffff,
+          emissive: 0x00ffff,
+          emissiveIntensity: 1,
+          transparent: true,
+          opacity: 0.9
+        });
+        const orb = new THREE.Mesh(orbGeo, orbMat);
+        orb.position.set(0, 4, 0);
+        orb.castShadow = true;
+        pedestal.add(orb);
+      
+        const labelCanvas = document.createElement("canvas");
+        labelCanvas.width = 512;
+        labelCanvas.height = 128;
+        const ctx = labelCanvas.getContext("2d");
+        ctx.font = "30px sans-serif";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("5 AwardCo Points", labelCanvas.width / 2, labelCanvas.height / 2);
+        const labelTexture = new THREE.CanvasTexture(labelCanvas);
+        labelTexture.needsUpdate = true;
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: labelTexture,
+          transparent: true,
+          depthTest: true
+        });
+        const labelSprite = new THREE.Sprite(spriteMaterial);
+        labelSprite.scale.set(12, 4, 1);
+        labelSprite.position.set(0, 9, 0);
+        pedestal.add(labelSprite);
+        return pedestal;
+      }
+      
+      init();
+    </script>
+  </body>
+</html>
