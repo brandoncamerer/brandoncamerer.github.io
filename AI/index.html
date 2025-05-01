@@ -165,7 +165,7 @@
               for (let col = 1; col <= rockCols; col++) {
                   let x = -250 + col * spacingXRock;
                   let z = -250 + row * spacingZRock;
-                  createRock(x, z, scene, getTerrainHeight, obstacles);
+                  createBanana(x, z, scene, getTerrainHeight, obstacles);
               }
           }
 
@@ -207,15 +207,16 @@
           obstacles.push({ x: x, z: z, radius: 5, type: "tree", meshes: [trunk, canopyGroup] });
       }
       
-      function createRock(x, z, scene, getTerrainHeight, obstacles) {
+      function createBanana(x, z, scene, getTerrainHeight, obstacles) {
           const h = getTerrainHeight(x, z);
-          let rock = new THREE.Mesh(
-            new THREE.DodecahedronGeometry(5, 0),
-            new THREE.MeshLambertMaterial({ color: 0x808080 })
+          let banana = new THREE.Mesh(
+              new THREE.TorusGeometry(5, 1.5, 8, 16, Math.PI),
+              new THREE.MeshLambertMaterial({ color: 0xffff00 })
           );
-          rock.position.set(x, h + 2.5, z);
-          scene.add(rock);
-          obstacles.push({ x: x, z: z, radius: 3, type: "rock", mesh: rock });
+          banana.rotation.x = Math.PI / 2; // orient like a banana
+          banana.position.set(x, h + 2.5, z);
+          scene.add(banana);
+          obstacles.push({ x: x, z: z, radius: 3, type: "banana", mesh: banana });
       }
       
       // --- environment.js content ---
@@ -728,6 +729,7 @@
       let scene, camera, renderer, controls;
       let obstacles = [];
       let rockCount = 0;
+      let bananaCount = 0;
       let thrownRocks = [];
       let castleWalls = [];
       let castleScreens = [];
@@ -868,20 +870,21 @@
       }
       
       function onMouseDown(e) {
-        if (e.button === 0 && rockCount > 0 && controls.isLocked) {
-          rockCount = 0;
-          let rockGeometry = new THREE.DodecahedronGeometry(5, 0);
-          let rockMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
-          let thrownRockMesh = new THREE.Mesh(rockGeometry, rockMaterial);
+        if (e.button === 0 && bananaCount > 0 && controls.isLocked) {
+          bananaCount = 0;
+          let bananaGeometry = new THREE.TorusGeometry(5, 1.5, 8, 16, Math.PI);
+          let bananaMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+          let thrownBananaMesh = new THREE.Mesh(bananaGeometry, bananaMaterial);
+          thrownBananaMesh.rotation.x = Math.PI / 2;
           let camPos = controls.getObject().position.clone();
-          thrownRockMesh.position.copy(camPos);
+          thrownBananaMesh.position.copy(camPos);
           let throwDir = new THREE.Vector3();
           camera.getWorldDirection(throwDir);
-          thrownRockMesh.position.add(throwDir.clone().multiplyScalar(5));
-          let rockVelocity = throwDir.clone().multiplyScalar(200);
-          rockVelocity.y += 50;
-          thrownRocks.push({ mesh: thrownRockMesh, velocity: rockVelocity });
-          scene.add(thrownRockMesh);
+          thrownBananaMesh.position.add(throwDir.clone().multiplyScalar(5));
+          let bananaVelocity = throwDir.clone().multiplyScalar(200);
+          bananaVelocity.y += 50;
+          thrownRocks.push({ mesh: thrownBananaMesh, velocity: bananaVelocity });
+          scene.add(thrownBananaMesh);
         }
       }
       
@@ -988,6 +991,7 @@
           }
         }
         handleRockPickup();
+        handleBananaPickup();
       }
       
       function handleRockPickup() {
@@ -998,6 +1002,22 @@
             const d = playerPos.distanceTo(obstacles[i].mesh.position);
             if (d < 15) {
               rockCount = 1;
+              scene.remove(obstacles[i].mesh);
+              obstacles.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+      
+      function handleBananaPickup() {
+        if (bananaCount >= 1) return;
+        const playerPos = controls.getObject().position;
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          if (obstacles[i].type === "banana") {
+            const d = playerPos.distanceTo(obstacles[i].mesh.position);
+            if (d < 15) {
+              bananaCount = 1;
               scene.remove(obstacles[i].mesh);
               obstacles.splice(i, 1);
               break;

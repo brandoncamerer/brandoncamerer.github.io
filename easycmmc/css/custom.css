@@ -1,0 +1,58 @@
+.privacy-link {
+    float: left;
+  }
+  
+  /* Media query for mobile devices */
+  @media (max-width: 767px) {
+    /* Hide the element on mobile devices */
+    .privacy-link {
+      display: none;
+    }
+  }
+
+  .plink {
+    display: none;
+  }
+  
+  /* Media query for mobile devices */
+  @media (max-width: 767px) {
+    /* Show the element on mobile devices */
+    .plink {
+      display: block;
+    }
+  }
+
+  .hidden {
+    display: none;
+}
+.clicked {
+  border: 3px solid #5974ec; /* Adjust border size and color */
+  border-radius: 10px; /* Rounded corners for a modern look */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow effect */
+  transform: scale(1.05); /* Slight scaling for a click effect */
+  transition: all 0.3s ease; /* Smooth transition for changes */
+}
+
+.image-container {
+  padding-left: 100px;
+  clear: left;
+  width: 100%; /* Ensure each container takes up the full width to stack vertically */
+  margin-bottom: 10px; /* Adjust this value to control the vertical spacing between images */
+
+}
+
+.inner-container {
+ padding: 12px;
+  background-color: #ffffff; /* Set your desired background color */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+  display: inline-block;
+  margin-right: 10px; 
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.center {
+  margin: 0 auto;
+  text-align: center;
+}
+

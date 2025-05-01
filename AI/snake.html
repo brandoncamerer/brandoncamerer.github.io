@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Snake Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Load Three.js from a CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script>
+    // Global variables and game settings
+    let scene, camera, renderer;
+    let snake = [];         // Holds grid positions of snake segments.
+    let snakeMeshes = [];   // Holds the THREE.Mesh objects corresponding to snake segments.
+    let dotMesh;            // The red dot that the snake “eats.”
+    let direction;          // Current movement direction.
+    const gridSize = 20;    // Size of the game grid. (The grid will range approximately from -10 to 9).
+    const cellSize = 1;     // Size of each grid cell (affects both snake segments and dot).
+    let moveInterval;       // Reference for the game loop interval.
+    let gameOver = false;   // Flag to signal end-of-game.
+
+    // Initialize scene, camera, lights, objects, and event listeners.
+    function init() {
+      // Create a new scene.
+      scene = new THREE.Scene();
+
+      // Set up a perspective camera.
+      camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      
+      // Create a WebGL renderer and append it to the document body.
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Add basic lighting.
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight.position.set(0, 10, 5);
+      scene.add(directionalLight);
+
+      // Create a ground plane with a wireframe grid look.
+      const planeGeometry = new THREE.PlaneGeometry(gridSize, gridSize, gridSize, gridSize);
+      const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x555555, wireframe: true });
+      const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.rotation.x = -Math.PI / 2; // Rotate to make it horizontal.
+      scene.add(plane);
+
+      // Initialize the snake (starting with 3 segments).
+      snake = [];
+      snakeMeshes = [];
+      // The snake is represented by grid positions (x, z).
+      snake.push({ x: 0, z: 0 });
+      snake.push({ x: -1, z: 0 });
+      snake.push({ x: -2, z: 0 });
+      // Initial moving direction: right.
+      direction = { x: 1, z: 0 };
+
+      // Create and render the snake meshes.
+      const snakeGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+      const snakeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+      snake.forEach(pos => {
+        const mesh = new THREE.Mesh(snakeGeometry, snakeMaterial);
+        mesh.position.set(pos.x * cellSize, cellSize / 2, pos.z * cellSize);
+        snakeMeshes.push(mesh);
+        scene.add(mesh);
+      });
+
+      // Spawn the first dot.
+      spawnDot();
+
+      // Position the camera so that the game board is visible.
+      camera.position.set(0, 15, 15);
+      camera.lookAt(0, 0, 0);
+
+      // Start the snake movement loop.
+      moveInterval = setInterval(moveSnake, 200);
+
+      // Start the render loop.
+      animate();
+    }
+
+    // Returns a random grid coordinate (as an object with x and z) within the grid bounds.
+    function getRandomPosition() {
+      const half = Math.floor(gridSize / 2);
+      return {
+        x: Math.floor(Math.random() * gridSize) - half,
+        z: Math.floor(Math.random() * gridSize) - half
+      };
+    }
+
+    // Spawns a dot at a random grid location that does not overlap the snake.
+    function spawnDot() {
+      if (dotMesh) {
+        scene.remove(dotMesh);
+      }
+      let pos;
+      // Ensure the dot's position is not already occupied by the snake.
+      do {
+        pos = getRandomPosition();
+      } while(snake.some(segment => segment.x === pos.x && segment.z === pos.z));
+      
+      const dotGeometry = new THREE.SphereGeometry(cellSize / 2, 16, 16);
+      const dotMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+      dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
+      dotMesh.position.set(pos.x * cellSize, cellSize / 2, pos.z * cellSize);
+      // Save grid coordinates in the mesh (useful for collision detection).
+      dotMesh.userData = pos;
+      scene.add(dotMesh);
+    }
+
+    // Updates the snake's position.
+    function moveSnake() {
+      if (gameOver) return;
+      
+      // Compute new head coordinates by moving in the current direction.
+      const head = snake[0];
+      let newHead = {
+        x: head.x + direction.x,
+        z: head.z + direction.z
+      };
+
+      // Wrap-around logic for X and Z axes.
+      const half = Math.floor(gridSize / 2);
+      if (newHead.x >= half) newHead.x = -half;
+      if (newHead.x < -half) newHead.x = half - 1;
+      if (newHead.z >= half) newHead.z = -half;
+      if (newHead.z < -half) newHead.z = half - 1;
+
+      // Check for self-collision. (If the snake runs into itself, end the game.)
+      if (snake.some(segment => segment.x === newHead.x && segment.z === newHead.z)) {
+        alert("Game Over!");
+        clearInterval(moveInterval);
+        gameOver = true;
+        return;
+      }
+
+      // Add the new head at the beginning of the snake array.
+      snake.unshift(newHead);
+
+      // Create and add a new mesh representing the new head.
+      const snakeGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+      const snakeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+      const newMesh = new THREE.Mesh(snakeGeometry, snakeMaterial);
+      newMesh.position.set(newHead.x * cellSize, cellSize / 2, newHead.z * cellSize);
+      snakeMeshes.unshift(newMesh);
+      scene.add(newMesh);
+
+      // Check if the snake eats the dot.
+      const dotPos = dotMesh.userData;
+      if (newHead.x === dotPos.x && newHead.z === dotPos.z) {
+        // Dot eaten. Do not remove the tail segment (i.e. snake grows).
+        spawnDot();
+      } else {
+        // Remove tail segment: update both the snake array and its corresponding mesh.
+        snake.pop();
+        const tailMesh = snakeMeshes.pop();
+        scene.remove(tailMesh);
+      }
+    }
+
+    // Render loop.
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    // Handle keyboard input to change snake direction.
+    function changeDirection(event) {
+      if (gameOver) return;
+      let newDir;
+      switch (event.key) {
+        case 'ArrowUp':
+          newDir = { x: 0, z: -1 };
+          break;
+        case 'ArrowDown':
+          newDir = { x: 0, z: 1 };
+          break;
+        case 'ArrowLeft':
+          newDir = { x: -1, z: 0 };
+          break;
+        case 'ArrowRight':
+          newDir = { x: 1, z: 0 };
+          break;
+        default:
+          return;
+      }
+      // Prevent reversing direction directly.
+      if (snake.length > 1) {
+        const next = snake[0];
+        const second = snake[1];
+        if (next.x + newDir.x === second.x && next.z + newDir.z === second.z) {
+          return;
+        }
+      }
+      direction = newDir;
+    }
+
+    // Resize handler so that the canvas fits the browser window.
+    window.addEventListener('resize', function() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Listen for arrow key presses.
+    window.addEventListener('keydown', changeDirection);
+
+    // Start the game.
+    init();
+  </script>
+</body>
+</html>
